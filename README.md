@@ -63,10 +63,41 @@ React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하
   - 화면(HTML)은 항상 최신을 네트워크에서 받고, 인터넷이 끊기면 오프라인 안내를 보여줍니다
   - `/assets/*`(버전이 붙은 빌드 파일)만 기기에 저장해 다시 씁니다. Firebase 요청은 건드리지 않습니다
   - 서비스 워커는 배포 빌드에서만 등록됩니다 (`src/main.jsx`)
-- **아이콘**: `public/icons/` (192·512 일반, 512 maskable, 180 iPhone), 구글 플레이 스토어용 512 아이콘은 `store/`
-- **안드로이드 앱**: 구글 플레이용 TWA(Trusted Web Activity), 패키지 이름 `com.recordish.app`
-  - 앱은 사이트를 그대로 띄우므로, 사이트를 배포하면 앱도 바로 최신이 됩니다
-  - 앱 상단 주소창을 숨기려면 `public/.well-known/assetlinks.json`에 앱 서명 인증서 지문(SHA-256)을 넣어야 합니다
+- **아이콘**: `public/icons/` (192·512 일반, 512 maskable, 180 iPhone)
+
+### 안드로이드 앱 (`android/`)
+
+구글 플레이용 **TWA(Trusted Web Activity)** 앱입니다. 앱이 https://recordish.github.io/ 를 크롬으로 전체 화면에 띄우므로,
+**사이트를 배포하면 앱도 바로 최신**이 됩니다 (앱을 다시 올릴 필요 없음).
+
+- 패키지 이름 `com.recordish.app`, 최소 Android 7.0(API 24), 대상 API 36
+- 라이브러리: `com.google.androidbrowserhelper:androidbrowserhelper`
+- 아이콘: 적응형 아이콘(파란 배경 + 흰 R), 스플래시: `res/drawable/splash.png`
+- **앱 ↔ 사이트 연결**: `public/.well-known/assetlinks.json` 에 앱 서명 인증서 SHA-256 지문이 있어야 앱 위쪽 주소창이 사라집니다
+  - 업로드 키 지문은 들어 있음. **구글 플레이 앱 서명 키 지문**(플레이 콘솔 → 설정 → 앱 무결성)을 추가해야 합니다
+  - GitHub Pages 배포는 숨김 폴더(`.well-known`)를 올리기 위해 `actions/upload-pages-artifact@v3` 를 씁니다 (v4 는 숨김 파일을 뺌)
+
+**빌드 (AAB)**
+```bash
+# 필요: JDK 17+, Android SDK (platforms;android-36, build-tools)
+cd android
+echo "sdk.dir=/path/to/android-sdk" > local.properties
+# 서명 정보 (git에 올리지 않음)
+cat > keystore.properties <<'EOT'
+storeFile=/path/to/recordish-upload.keystore
+storePassword=...
+keyAlias=upload
+keyPassword=...
+EOT
+./gradlew bundleRelease        # → app/build/outputs/bundle/release/app-release.aab
+```
+- 새 버전을 올릴 때는 `app/build.gradle` 의 `versionCode` 를 1 올립니다
+- ⚠️ 서명 키(`*.keystore`)와 `keystore.properties` 는 **절대 커밋하지 말고 안전하게 백업**하세요 (`android/.gitignore`)
+
+### 구글 플레이 등록 자료 (`store/`)
+
+- `play-console-guide.md`: 스토어 설명, 데이터 보안·콘텐츠 등급 답변, 앱 액세스 안내, 테스트·출시 순서
+- `play-store-icon-512.png`, `feature-graphic-1024x500.png`, `screenshots/` (1082×1922)
 
 ## 실행 방법
 
@@ -114,11 +145,13 @@ recordish.github.io/
 ├── public/
 │   ├── favicon.svg             # 탭 아이콘
 │   ├── icons/                  # 앱 아이콘 (PNG)
+│   ├── .well-known/assetlinks.json  # 안드로이드 앱 ↔ 사이트 연결
 │   ├── manifest.webmanifest    # PWA 앱 정보
 │   ├── sw.js                   # 서비스 워커
 │   ├── offline.html            # 오프라인 안내 화면
 │   └── privacy.html            # 개인정보처리방침
-├── store/                      # 구글 플레이 스토어용 이미지 (배포 안 됨)
+├── android/                    # 안드로이드 앱 (TWA, 구글 플레이용)
+├── store/                      # 구글 플레이 등록 자료·이미지 (배포 안 됨)
 └── src/
     ├── main.jsx                # 진입점
     ├── App.jsx                 # 라우팅 + AuthProvider

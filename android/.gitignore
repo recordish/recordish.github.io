@@ -1,0 +1,9 @@
+# 빌드 결과·로컬 설정
+.gradle/
+build/
+app/build/
+local.properties
+# 서명 키와 비밀번호: 절대 커밋하지 않습니다
+keystore.properties
+*.keystore
+*.jks

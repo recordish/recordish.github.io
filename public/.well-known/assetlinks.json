@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.recordish.app",
+      "sha256_cert_fingerprints": [
+        "C9:D5:AC:67:B5:44:62:5D:69:3F:43:95:85:1A:A3:67:88:D9:A0:30:FC:FA:12:47:69:FD:A4:5F:0F:48:F8:BC"
+      ]
+    }
+  }
+]

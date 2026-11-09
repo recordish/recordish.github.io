@@ -1,0 +1,46 @@
+// Recordish 안드로이드 앱 (TWA: https://recordish.github.io 를 앱처럼 띄움)
+plugins {
+    id 'com.android.application'
+}
+
+// 서명 정보: android/keystore.properties (git에 올리지 않음) 또는 환경 변수
+def signingProps = new Properties()
+def signingFile = rootProject.file('keystore.properties')
+if (signingFile.exists()) signingFile.withInputStream { signingProps.load(it) }
+def sign = { String key, String env -> signingProps.getProperty(key) ?: System.getenv(env) }
+
+android {
+    namespace 'com.recordish.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.recordish.app'
+        minSdk 24  // Android 7.0 이상 (androidbrowserhelper 최소 요구)
+        targetSdk 36
+        // 새 버전을 올릴 때마다 versionCode 를 1씩 올려야 합니다
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        release {
+            if (sign('storeFile', 'RECORDISH_KEYSTORE')) {
+                storeFile rootProject.file(sign('storeFile', 'RECORDISH_KEYSTORE'))
+                storePassword sign('storePassword', 'RECORDISH_KEYSTORE_PASSWORD')
+                keyAlias sign('keyAlias', 'RECORDISH_KEY_ALIAS')
+                keyPassword sign('keyPassword', 'RECORDISH_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (sign('storeFile', 'RECORDISH_KEYSTORE')) signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+}
