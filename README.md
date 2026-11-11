@@ -75,6 +75,7 @@ React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하
   Firebase에 로그인합니다 (`src/services/authService.js`). 웹에서는 지금처럼 팝업 로그인
   - 필요: `.env.production` 의 `VITE_GOOGLE_WEB_CLIENT_ID` (Firebase 콘솔 → Authentication → 로그인 방법 → Google → 웹 SDK 구성 → 웹 클라이언트 ID)
   - 필요: Firebase 프로젝트 설정 → 내 앱에 **Android 앱 `com.recordish.app`** 등록 + **SHA-1 지문** (업로드 키, 그리고 Google Play 앱 서명 키)
+    - 업로드 키 SHA-1 `D7:4F:E6:EA:…:00:53` 등록 완료 (2026-11-11, 앱 로그인 확인). Play 앱 서명 키 SHA-1은 첫 업로드 후 추가
 - 뒤로가기: 이전 화면이 있으면 뒤로, 첫 화면이면 앱 종료 (`src/native.js`)
 - 오프라인이면 `offline.html` 을 보여줍니다
 - 아이콘·스플래시 원본: `assets/` → `npx @capacitor/assets generate --android`
