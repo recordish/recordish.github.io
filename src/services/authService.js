@@ -67,7 +67,8 @@ async function nativeGoogleIdToken() {
   const { SocialLogin } = await import('@capgo/capacitor-social-login')
   socialLoginReady ??= SocialLogin.initialize({ google: { webClientId: GOOGLE_WEB_CLIENT_ID } })
   await socialLoginReady
-  const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
+  // scopes 는 넘기지 않습니다: 기본값이 이미 email·profile·openid 이고, 넘기면 MainActivity 를 바꿔야 한다는 오류가 납니다
+  const res = await SocialLogin.login({ provider: 'google', options: {} })
   const idToken = res?.result?.idToken
   if (!idToken) throw new Error('Google 로그인을 마치지 못했어요. 다시 시도해 주세요.')
   return idToken
