@@ -193,3 +193,16 @@ button.danger { color: var(--danger); }
   .google-btn:hover:not(:disabled) { background: #1f1f20; }
 }
 .error { color: var(--danger); }
+
+/* 안드로이드 앱: 뒤로가기로 나갈 때 "앱을 종료할까요?" */
+.exit-dialog {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(0, 0, 0, 0.45);
+}
+.exit-dialog-box {
+  width: 100%; max-width: 320px; padding: 20px; border-radius: 12px;
+  background: var(--card); color: var(--text); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.exit-dialog-box p { margin: 0 0 20px; font-size: 17px; font-weight: 600; }
+.exit-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.exit-dialog-actions button { min-width: 72px; }
