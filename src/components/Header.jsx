@@ -22,7 +22,9 @@ export default function Header() {
     <header className="header">
       <Link to="/" className="logo" aria-label="Recordish 첫 화면" title="Recordish">R</Link>
       <nav className="menu">
-        <NavLink to={needLogin ? '/login' : '/mine'} className="menu-icon" aria-label="나만보기" title="나만보기">
+        <NavLink to={needLogin ? '/login' : '/mine'}
+          // 로그인 전에는 로그인 화면으로 가는 링크라, 로그인 화면에서 켜지지 않게 합니다 (켜지는 건 사람 아이콘만)
+          className={({ isActive }) => `menu-icon${isActive && !needLogin ? ' active' : ''}`} aria-label="나만보기" title="나만보기">
           <Icon>
             <rect x="5" y="11" width="14" height="10" rx="2" />
             <path d="M8 11V7a4 4 0 0 1 8 0v4" />

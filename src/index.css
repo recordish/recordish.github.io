@@ -138,22 +138,15 @@ button.danger { color: var(--danger); }
 @media (min-width: 768px) {
   .memo p, .editor textarea { font-size: 15px; }
 }
-/* 긴 메모는 3줄까지만 보여줍니다. 말줄임(…)은 "… 더보기" 버튼이 대신하므로
-   line-clamp(자동 … 표시) 대신 높이로 자릅니다 (줄바꿈으로 짧게 끝난 줄에 …가 두 번 보이지 않게) */
+/* 긴 메모는 3줄까지만 보여주고 "… 더보기"를 붙입니다 (자르는 위치는 MemoContent.jsx 가 글자 단위로 계산) */
 .memo p { line-height: 1.5; }
-.memo-content.clamped { max-height: 4.5em; overflow: hidden; }
-/* 메모 본문의 더보기 / 접기: 본문과 같은 글꼴·크기·줄 높이의 회색 글자로, 줄 끝에 붙입니다 */
-.memo-content { position: relative; }
+.memo-body { position: relative; }
+/* 메모 본문의 더보기 / 접기: 본문과 같은 글꼴·크기·줄 높이의 회색 글자로, 글자 바로 뒤에 붙입니다 */
 .inline-toggle {
-  border: none; background: none; padding: 0 0 0 4px; margin: 0; cursor: pointer;
+  border: none; background: none; padding: 0; margin: 0; cursor: pointer;
   font: inherit; line-height: inherit; color: var(--muted); vertical-align: baseline;
 }
 .inline-toggle:hover { color: var(--text); }
-/* 줄였을 때는 3번째 줄 오른쪽 끝에 겹쳐 두고, 왼쪽을 카드 색으로 서서히 덮어 글자가 비치지 않게 합니다 */
-.more-at-end {
-  position: absolute; right: 0; bottom: 0; padding-left: 24px;
-  background: linear-gradient(to right, transparent, var(--card) 20px);
-}
 .memo .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
 
 /* 점 세 개(⋮) 메뉴 */
