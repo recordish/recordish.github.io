@@ -11,11 +11,11 @@ export default function MemoEditor({ initial = { content: '', isPublic: false },
     e.preventDefault()
     if (!content.trim() || saving) return
     const draft = { content, isPublic }
-    // 새 메모는 바로 입력창을 비워서 다음 메모를 쓸 수 있게 하고(기본값 비공개로 되돌림),
+    // 새 메모는 바로 입력창을 비워서 다음 메모를 쓸 수 있게 하고(공개 여부는 그 화면의 기본값으로 되돌림),
     // 저장에 실패하면 입력했던 내용을 되돌려 놓습니다.
     if (isNew) {
       setContent('')
-      setIsPublic(false)
+      setIsPublic(initial.isPublic === true)
     }
     setSaving(true)
     const ok = await onSubmit(draft)

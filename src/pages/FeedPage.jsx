@@ -43,7 +43,10 @@ export default function FeedPage({ mode }) {
           <NavLink to={isGuest ? '/login' : '/public'} className="subtab">내가 쓴 공개메모</NavLink>
         </nav>
       )}
-      {canWrite && page.hasEditor && <MemoEditor key={mode} onSubmit={handleAdd} submitLabel="추가" />}
+      {canWrite && page.hasEditor && (
+        // 공개메모 화면의 입력창은 '공개'가 기본, 나만보기는 '비공개'가 기본
+        <MemoEditor key={mode} initial={{ content: '', isPublic: mode !== 'mine' }} onSubmit={handleAdd} submitLabel="추가" />
+      )}
       {/* 화면 제목은 상단 아이콘·선택 버튼이 대신하므로 눈에 안 보이게(화면 읽기 프로그램에는 읽히게) 둡니다 */}
       <h2 className={page.subtabs || page.hideTitle ? 'sr-only' : 'page-title'}>{page.title}</h2>
       {error && <p className="error">메모를 불러오지 못했습니다: {error}</p>}
