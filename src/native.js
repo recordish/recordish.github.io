@@ -2,6 +2,31 @@
 import { Capacitor } from '@capacitor/core'
 
 let dialog = null // 열려 있는 "앱을 종료할까요?" 창
+const PRESSES = 3 // 첫 화면에서 뒤로가기를 이만큼 연달아 누르면 종료할지 물어봅니다
+const WINDOW_MS = 1500 // "연달아"로 치는 간격
+let presses = 0
+let lastPress = 0
+let toastTimer = null
+
+// 아래쪽에 잠깐 보였다 사라지는 안내
+function showToast(text) {
+  let toast = document.querySelector('.app-toast')
+  if (!toast) {
+    toast = document.createElement('div')
+    toast.className = 'app-toast'
+    toast.setAttribute('role', 'status')
+    document.body.appendChild(toast)
+  }
+  toast.textContent = text
+  toast.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => toast.classList.remove('show'), WINDOW_MS)
+}
+
+function hideToast() {
+  clearTimeout(toastTimer)
+  document.querySelector('.app-toast')?.classList.remove('show')
+}
 
 function closeExitDialog() {
   dialog?.remove()
@@ -11,6 +36,7 @@ function closeExitDialog() {
 // 뒤로 갈 화면이 없을 때 "앱을 종료할까요?"를 묻고, 예를 누르면 앱을 닫습니다
 function askExit(App) {
   if (dialog) return
+  hideToast()
   dialog = document.createElement('div')
   dialog.className = 'exit-dialog'
   dialog.innerHTML = `
@@ -34,12 +60,22 @@ export async function setupNative() {
   if (!Capacitor.isNativePlatform()) return
   document.documentElement.classList.add('is-app')
   const { App } = await import('@capacitor/app')
-  // 안드로이드 뒤로가기: 이전 화면이 있으면 뒤로, 첫 화면이면 종료할지 물어봅니다
+  // 안드로이드 뒤로가기: 이전 화면이 있으면 뒤로.
+  // 더 갈 곳이 없으면 1.5초 안에 3번 연달아 눌렀을 때 종료할지 물어봅니다 (1·2번째는 안내만)
   // (HashRouter 라서 첫 화면은 주소의 # 뒤가 비어 있거나 "#/" 입니다)
   App.addListener('backButton', ({ canGoBack }) => {
     if (dialog) return closeExitDialog() // 묻는 창이 떠 있을 때 뒤로가기 = 아니오
     const atHome = ['', '#', '#/'].includes(window.location.hash)
-    if (canGoBack && !atHome) window.history.back()
-    else askExit(App)
+    if (canGoBack && !atHome) {
+      presses = 0
+      return window.history.back()
+    }
+    const now = Date.now()
+    presses = now - lastPress <= WINDOW_MS ? presses + 1 : 1
+    lastPress = now
+    const left = PRESSES - presses
+    if (left > 0) return showToast(`${left === 2 ? '두' : '한'} 번 더 누르면 종료할지 물어볼게요`)
+    presses = 0
+    askExit(App)
   })
 }

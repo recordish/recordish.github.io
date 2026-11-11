@@ -79,7 +79,7 @@ React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하
   - 필요: `.env.production` 의 `VITE_GOOGLE_WEB_CLIENT_ID` (Firebase 콘솔 → Authentication → 로그인 방법 → Google → 웹 SDK 구성 → 웹 클라이언트 ID)
   - 필요: Firebase 프로젝트 설정 → 내 앱에 **Android 앱 `com.recordish.app`** 등록 + **SHA-1 지문** (업로드 키, 그리고 Google Play 앱 서명 키)
     - 업로드 키 SHA-1 `D7:4F:E6:EA:…:00:53` 등록 완료 (2026-11-11, 앱 로그인 확인). Play 앱 서명 키 SHA-1은 첫 업로드 후 추가
-- 뒤로가기: 이전 화면이 있으면 뒤로, 더 갈 곳이 없으면 "앱을 종료할까요?" (예 → 종료) (`src/native.js`)
+- 뒤로가기: 이전 화면이 있으면 뒤로. 더 갈 곳이 없으면 1.5초 안에 3번 연달아 눌렀을 때 "앱을 종료할까요?" (1·2번째는 아래쪽 안내, 예 → 종료) (`src/native.js`)
 - 오프라인이면 `offline.html` 을 보여줍니다
 - 아이콘·스플래시 원본: `assets/` → `npx @capacitor/assets generate --android`
 
