@@ -1,8 +1,9 @@
 // Recordish 서비스 워커
-// - 화면(HTML): 항상 네트워크에서 최신을 받고, 인터넷이 끊기면 오프라인 안내 화면을 보여줍니다
+// - 화면(HTML): 항상 서버에 최신인지 확인하고 받습니다(브라우저 저장본 10분 캐시를 건너뜀).
+//   그래서 배포하면 다음에 열 때 바로 바뀝니다. 인터넷이 끊기면 오프라인 안내 화면을 보여줍니다
 // - 빌드된 파일(/assets/*): 이름에 버전이 들어 있어 바뀌지 않으므로 한 번 받으면 저장해 두고 씁니다
 // - 그 외(Firebase 등 다른 주소): 건드리지 않습니다
-const CACHE = 'recordish-v1'
+const CACHE = 'recordish-v2'
 const OFFLINE_URL = '/offline.html'
 
 self.addEventListener('install', (event) => {
@@ -26,7 +27,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)))
+    event.respondWith(fetch(request.url, { cache: 'no-cache', credentials: 'same-origin' }).catch(() => caches.match(OFFLINE_URL)))
     return
   }
 
