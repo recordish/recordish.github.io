@@ -13,7 +13,7 @@ const PAGES = {
   public: { title: '내가 쓴 공개메모', subtabs: true, hasEditor: false, empty: '아직 공개한 메모가 없습니다.' },
 }
 
-// mode: 'all' (공개메모 전체, /) | 'mine' (나만보기, /mine) | 'public' (내가 쓴 공개메모, /public)
+// mode: 'all' (공개메모 전체, /feed) | 'mine' (나만보기, /mine) | 'public' (내가 쓴 공개메모, /public)
 export default function FeedPage({ mode }) {
   const { memos, loading, loadingMore, error, hasMore, loadMore, addMemo, editMemo, removeMemo } = useFeed(mode)
   const { user, loading: authLoading } = useAuth()
@@ -39,7 +39,7 @@ export default function FeedPage({ mode }) {
       )}
       {page.subtabs && (
         <nav className="subtabs" aria-label="공개메모 보기">
-          <NavLink to="/" end className="subtab">전체</NavLink>
+          <NavLink to="/feed" className="subtab">전체</NavLink>
           <NavLink to={isGuest ? '/login' : '/public'} className="subtab">내가 쓴 공개메모</NavLink>
         </nav>
       )}

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import * as memoService from '../services/memoService'
 
 // 화면별 메모 목록
-// mode: 'all'    → 나와 다른 사람의 공개 메모 (공개메모 전체, /)    — 20개씩 "더 보기"
+// mode: 'all'    → 나와 다른 사람의 공개 메모 (공개메모 전체, /feed)    — 20개씩 "더 보기"
 //       'mine'   → 내가 쓴 비공개 메모 (나만보기, /mine)  — 한 번에
 //       'public' → 내가 쓴 공개 메모 (내가 쓴 공개메모, /public)  — 한 번에
 export function useFeed(mode) {
