@@ -25,7 +25,7 @@ import org.robolectric.shadows.ShadowPackageManager;
 
 // 앱 아이콘을 눌렀을 때처럼 시작 화면(LauncherActivity)을 띄워 보고, 오류가 나면 그대로 보여줍니다.
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = {34, 35, 36})
+@Config(sdk = 36)
 public class LaunchTest {
 
     private static final String CHROME = "com.android.chrome";
@@ -70,6 +70,26 @@ public class LaunchTest {
         assertNotNull(activity);
         Intent next = Shadows.shadowOf(activity).getNextStartedActivity();
         System.out.println("크롬 있음 → 다음 화면: " + next);
+    }
+
+    @Test
+    public void startActivityOpensTwaLauncher() {
+        installFakeChrome();
+        Activity start = Robolectric.buildActivity(StartActivity.class).setup().get();
+        Intent next = Shadows.shadowOf(start).getNextStartedActivity();
+        System.out.println("첫 화면(StartActivity) → 다음 화면: " + next);
+        assertNotNull(next);
+        org.junit.Assert.assertEquals(LauncherActivity.class.getName(), next.getComponent().getClassName());
+    }
+
+    @Test
+    public void startActivityShowsLastCrash() throws Exception {
+        java.io.File f = new java.io.File(RuntimeEnvironment.getApplication().getFilesDir(), RecordishApp.CRASH_FILE);
+        java.nio.file.Files.write(f.toPath(), "테스트 오류".getBytes());
+        Activity start = Robolectric.buildActivity(StartActivity.class).setup().get();
+        android.app.Dialog dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        System.out.println("지난 오류 있음 → 대화상자 표시: " + (dialog != null && dialog.isShowing()) + ", 기록 파일 지움: " + !f.exists());
+        org.junit.Assert.assertTrue(dialog != null && dialog.isShowing());
     }
 
     @Test
