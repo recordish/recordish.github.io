@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-// 메모 본문: 3줄이 넘으면 말줄임(…)으로 줄이고 "더보기 / 접기" 버튼을 보여줍니다.
+// 메모 본문: 3줄이 넘으면 3줄까지만 보여주고, 3번째 줄 끝에 "… 더보기", 펼치면 마지막 줄 끝에 "접기"를 붙입니다.
 // 화면 폭이 바뀌면 다시 계산합니다.
 export default function MemoContent({ content }) {
   const ref = useRef(null)
@@ -16,16 +16,20 @@ export default function MemoContent({ content }) {
     return () => observer.disconnect()
   }, [content, expanded])
 
+  const toggle = () => setExpanded((v) => !v)
   return (
-    <>
+    <div className="memo-body">
       <p ref={ref} className={`memo-content ${expanded ? '' : 'clamped'}`}>
         {content}
+        {/* 펼쳤을 때: 마지막 줄 끝에 "접기" */}
+        {overflowing && expanded && (
+          <button type="button" className="inline-toggle" aria-expanded="true" onClick={toggle}>접기</button>
+        )}
       </p>
-      {overflowing && (
-        <button type="button" className="text-button" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
-          {expanded ? '접기' : '더보기'}
-        </button>
+      {/* 줄였을 때: 3번째 줄 맨 끝에 "… 더보기" (말줄임 위에 겹쳐 놓음) */}
+      {overflowing && !expanded && (
+        <button type="button" className="inline-toggle more-at-end" aria-expanded="false" onClick={toggle}>… 더보기</button>
       )}
-    </>
+    </div>
   )
 }
