@@ -5,6 +5,7 @@
 //   가입 증명: members/{uid} = { code, joinedAt }   ← 가입할 때 코드 사용 횟수와 함께 기록
 //   보안 규칙이 "Google 로그인 또는 members 문서가 있는 계정"만 쓰기를 허용합니다.
 // Firebase가 설정되지 않았으면 로그인 없이 쓸 수 있도록 null 사용자를 돌려줍니다.
+import { Capacitor } from '@capacitor/core'
 import {
   createUserWithEmailAndPassword,
   deleteUser,
@@ -13,6 +14,7 @@ import {
   onAuthStateChanged,
   reauthenticateWithCredential,
   reauthenticateWithPopup,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -54,8 +56,33 @@ export function subscribeAuth(callback) {
   }
 }
 
+// 안드로이드 앱(Capacitor) 안에서는 웹 팝업 대신 폰의 Google 계정 선택 창으로 로그인합니다.
+// 웹 클라이언트 ID: Firebase 콘솔 → Authentication → 로그인 방법 → Google → 웹 SDK 구성
+const isApp = Capacitor.isNativePlatform()
+const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID
+let socialLoginReady = null
+
+async function nativeGoogleIdToken() {
+  if (!GOOGLE_WEB_CLIENT_ID) throw new Error('앱 로그인 설정(웹 클라이언트 ID)이 아직 없어요. 운영자에게 알려 주세요.')
+  const { SocialLogin } = await import('@capgo/capacitor-social-login')
+  socialLoginReady ??= SocialLogin.initialize({ google: { webClientId: GOOGLE_WEB_CLIENT_ID } })
+  await socialLoginReady
+  const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
+  const idToken = res?.result?.idToken
+  if (!idToken) throw new Error('Google 로그인을 마치지 못했어요. 다시 시도해 주세요.')
+  return idToken
+}
+
+function nativeGoogleLogout() {
+  if (!isApp) return
+  import('@capgo/capacitor-social-login')
+    .then(({ SocialLogin }) => SocialLogin.logout({ provider: 'google' }))
+    .catch(() => {})
+}
+
 export async function loginWithGoogle() {
   if (!auth) throw new Error('Firebase가 아직 설정되지 않았습니다. .env.local을 확인하세요.')
+  if (isApp) return signInWithCredential(auth, GoogleAuthProvider.credential(await nativeGoogleIdToken()))
   return signInWithPopup(auth, new GoogleAuthProvider())
 }
 
@@ -121,6 +148,7 @@ export async function loginWithEmail(email, password) {
 
 export async function logout() {
   clearProfileCache()
+  nativeGoogleLogout()
   if (auth) await signOut(auth)
 }
 
@@ -139,10 +167,13 @@ export async function deleteAccount() {
       const password = prompt('보안을 위해 비밀번호를 한 번 더 입력해 주세요.')
       if (!password) throw new Error('비밀번호를 입력하지 않아 계정을 삭제하지 못했어요.')
       await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
+    } else if (isApp) {
+      await reauthenticateWithCredential(user, GoogleAuthProvider.credential(await nativeGoogleIdToken()))
     } else {
       await reauthenticateWithPopup(user, new GoogleAuthProvider())
     }
     await deleteUser(user)
   }
   clearProfileCache()
+  nativeGoogleLogout()
 }

@@ -65,34 +65,33 @@ React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하
   - 서비스 워커는 배포 빌드에서만 등록됩니다 (`src/main.jsx`)
 - **아이콘**: `public/icons/` (192·512 일반, 512 maskable, 180 iPhone)
 
-### 안드로이드 앱 (`android/`)
+### 안드로이드 앱 (`android/`, Capacitor)
 
-구글 플레이용 **TWA(Trusted Web Activity)** 앱입니다. 앱이 https://recordish.github.io/ 를 크롬으로 전체 화면에 띄우므로,
-**사이트를 배포하면 앱도 바로 최신**이 됩니다 (앱을 다시 올릴 필요 없음).
+**Capacitor 8** 앱입니다. 앱 안의 웹 화면(WebView)으로 https://recordish.github.io/ 를 그대로 불러오므로
+**사이트를 배포하면 앱도 바로 최신**이 됩니다 (`capacitor.config.json` 의 `server.url`). 크롬을 거치지 않아 "Chrome에서 실행 중" 안내가 없습니다.
 
-- 패키지 이름 `com.recordish.app`, 최소 Android 7.0(API 24), 대상 API 36
-- 라이브러리: `com.google.androidbrowserhelper:androidbrowserhelper`
-- 아이콘: 적응형 아이콘(파란 배경 + 흰 R), 스플래시: `res/drawable/splash.png`
-- **앱 ↔ 사이트 연결**: `public/.well-known/assetlinks.json` 에 앱 서명 인증서 SHA-256 지문이 있어야 앱 위쪽 주소창이 사라집니다
-  - 업로드 키 지문은 들어 있음. **구글 플레이 앱 서명 키 지문**(플레이 콘솔 → 설정 → 앱 무결성)을 추가해야 합니다
-  - GitHub Pages 배포는 숨김 폴더(`.well-known`)를 올리기 위해 `actions/upload-pages-artifact@v3` 를 씁니다 (v4 는 숨김 파일을 뺌)
+- 패키지 이름 `com.recordish.app`, 최소 Android 7.0(API 24), 대상 API 36, AGP 8.13
+- **Google 로그인**: 앱 안에서는 웹 팝업 대신 폰의 Google 계정 선택 창(`@capgo/capacitor-social-login`)으로 ID 토큰을 받아
+  Firebase에 로그인합니다 (`src/services/authService.js`). 웹에서는 지금처럼 팝업 로그인
+  - 필요: `.env.production` 의 `VITE_GOOGLE_WEB_CLIENT_ID` (Firebase 콘솔 → Authentication → 로그인 방법 → Google → 웹 SDK 구성 → 웹 클라이언트 ID)
+  - 필요: Firebase 프로젝트 설정 → 내 앱에 **Android 앱 `com.recordish.app`** 등록 + **SHA-1 지문** (업로드 키, 그리고 Google Play 앱 서명 키)
+- 뒤로가기: 이전 화면이 있으면 뒤로, 첫 화면이면 앱 종료 (`src/native.js`)
+- 오프라인이면 `offline.html` 을 보여줍니다
+- 아이콘·스플래시 원본: `assets/` → `npx @capacitor/assets generate --android`
 
-**빌드 (AAB)**
+**빌드 (AAB / APK)**
 ```bash
-# 필요: JDK 17+, Android SDK (platforms;android-36, build-tools)
+npm run build && npx cap sync android
 cd android
 echo "sdk.dir=/path/to/android-sdk" > local.properties
-# 서명 정보 (git에 올리지 않음)
-cat > keystore.properties <<'EOT'
-storeFile=/path/to/recordish-upload.keystore
-storePassword=...
-keyAlias=upload
-keyPassword=...
-EOT
-./gradlew bundleRelease        # → app/build/outputs/bundle/release/app-release.aab
+# 서명 정보는 환경변수로만 (저장소에 적지 않음)
+export ANDROID_KEYSTORE_PATH=/path/to/recordish-upload.keystore
+export ANDROID_KEYSTORE_PASSWORD=... ANDROID_KEY_ALIAS=upload ANDROID_KEY_PASSWORD=...
+./gradlew bundleRelease     # → app/build/outputs/bundle/release/app-release.aab
+./gradlew assembleRelease   # → app/build/outputs/apk/release/app-release.apk (직접 설치 테스트용)
 ```
-- 새 버전을 올릴 때는 `app/build.gradle` 의 `versionCode` 를 1 올립니다
-- ⚠️ 서명 키(`*.keystore`)와 `keystore.properties` 는 **절대 커밋하지 말고 안전하게 백업**하세요 (`android/.gitignore`)
+- 새 버전을 올릴 때는 `android/app/build.gradle` 의 `versionCode` 를 1 올립니다 (1~3은 이전 TWA 테스트 빌드에서 사용, 지금 4)
+- ⚠️ 서명 키(`*.keystore`)와 비밀번호는 **절대 커밋하지 말고 안전하게 백업**하세요
 
 ### 구글 플레이 등록 자료 (`store/`)
 
@@ -145,15 +144,18 @@ recordish.github.io/
 ├── public/
 │   ├── favicon.svg             # 탭 아이콘
 │   ├── icons/                  # 앱 아이콘 (PNG)
-│   ├── .well-known/assetlinks.json  # 안드로이드 앱 ↔ 사이트 연결
+│   ├── .well-known/assetlinks.json  # 안드로이드 앱 ↔ 사이트 연결 (앱 링크용)
 │   ├── manifest.webmanifest    # PWA 앱 정보
 │   ├── sw.js                   # 서비스 워커
 │   ├── offline.html            # 오프라인 안내 화면
 │   └── privacy.html            # 개인정보처리방침
-├── android/                    # 안드로이드 앱 (TWA, 구글 플레이용)
+├── android/                    # 안드로이드 앱 (Capacitor, 구글 플레이용)
+├── assets/                     # 앱 아이콘·스플래시 원본 (@capacitor/assets)
+├── capacitor.config.json       # Capacitor 설정 (앱 ID, 불러올 사이트 주소)
 ├── store/                      # 구글 플레이 등록 자료·이미지 (배포 안 됨)
 └── src/
     ├── main.jsx                # 진입점
+    ├── native.js               # 안드로이드 앱에서만: 뒤로가기 처리
     ├── App.jsx                 # 라우팅 + AuthProvider
     ├── index.css               # 전역 스타일 (색상 변수: 포인트 컬러 연한 블루)
     ├── firebase/
