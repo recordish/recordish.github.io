@@ -4,9 +4,10 @@
   --text: #1f2328;
   --muted: #6b7280;
   --border: #e5e7eb;
-  --primary: #5bb0f0;        /* 포인트 컬러: 연한 블루 */
-  --on-primary: #ffffff;     /* 포인트 컬러 위 글자 */
-  --primary-text: #1a73b8;   /* 흰 배경 위 파란 글자(링크, 태그) */
+  --primary: #8ec96d;        /* 포인트 컬러: 연두 (상단 배경) */
+  --primary-strong: #3d8526; /* 진한 그린: 버튼·선택된 항목 배경 (흰 글자) */
+  --on-primary: #ffffff;     /* 진한 그린 위 글자 */
+  --primary-text: #3d8526;   /* 흰 배경 위 초록 글자(링크, 아이콘) */
   --danger: #dc2626;
   font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   color: var(--text);
@@ -19,9 +20,10 @@
     --text: #e6e7ea;
     --muted: #9aa0aa;
     --border: #2c3039;
-    --primary: #5bb0f0;
+    --primary: #8ec96d;
+    --primary-strong: #3d8526;
     --on-primary: #ffffff;
-    --primary-text: #7cc4fa;
+    --primary-text: #9fd47f;
     --danger: #f87171;
   }
 }
@@ -54,7 +56,7 @@ a { color: var(--primary-text); text-decoration: none; }
 .subtabs { display: flex; gap: 8px; margin: 0 0 16px; }
 .subtab { font-size: 14px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
   background: var(--card); color: var(--muted); }
-.subtab.active { border-color: var(--primary); background: var(--primary); color: #000; font-weight: 600; }
+.subtab.active { border-color: var(--primary-strong); background: var(--primary-strong); color: var(--on-primary); font-weight: 600; }
 .page-title { font-size: 18px; margin: 0 0 12px; }
 /* 입력창 바로 아래 제목은 위쪽 여백을 줍니다 (나만보기·공개메모 화면) */
 .editor + .page-title { margin-top: 28px; }
@@ -103,7 +105,7 @@ button {
   font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
   border: 1px solid var(--border); background: var(--card); color: var(--text);
 }
-button.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); font-weight: 700; }
+button.primary { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); font-weight: 700; }
 button:disabled { opacity: 0.6; cursor: default; }
 button.danger { color: var(--danger); }
 
@@ -117,9 +119,11 @@ button.danger { color: var(--danger); }
 .more button { min-width: 140px; }
 .editor-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .visibility { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.visibility button { border: none; border-radius: 0; font-size: 14px; color: var(--muted); }
+.visibility button { border: none; border-radius: 0; font-size: 14px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.visibility button svg { color: var(--primary-text); }
 .visibility button + button { border-left: 1px solid var(--border); }
-.visibility button.on { background: var(--primary); color: var(--on-primary); font-weight: 700; }
+.visibility button.on { background: var(--primary-strong); color: var(--on-primary); font-weight: 700; }
+.visibility button.on svg { color: var(--on-primary); }
 .memo .info { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .author { font-weight: 600; color: var(--text); }
 .edited { color: var(--muted); }
