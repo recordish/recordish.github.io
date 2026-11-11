@@ -33,6 +33,13 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all { it.testLogging { events 'failed', 'passed'; exceptionFormat 'full'; showStandardStreams true } }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -43,4 +50,8 @@ android {
 
 dependencies {
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+
+    // 실행 확인용 테스트 (Robolectric: 기기 없이 안드로이드 환경을 흉내 냄)
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.17'
 }
