@@ -8,8 +8,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // 구글 플레이에 새로 올릴 때마다 1씩 올립니다 (1~3은 이전 TWA 테스트 빌드에서 사용)
-        versionCode 4
-        versionName "1.1.0"
+        versionCode 5
+        versionName "1.1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
