@@ -9,7 +9,7 @@ import { useFeed } from '../hooks/useMemos'
 const PAGES = {
 // subtabs: 공개메모 메뉴 안의 '전체 / 내가 쓴 공개메모' 선택 (제목 대신 보여줌)
   all: { title: '공개메모 전체', subtabs: true, hasEditor: true, empty: '아직 공개된 메모가 없습니다.' },
-  mine: { title: '🔒 나만보기', hasEditor: true, empty: '아직 나만 보는 메모가 없습니다.' },
+  mine: { title: '🔒 나만보기', hideTitle: true, hasEditor: true, empty: '아직 나만 보는 메모가 없습니다.' },
   public: { title: '내가 쓴 공개메모', subtabs: true, hasEditor: false, empty: '아직 공개한 메모가 없습니다.' },
 }
 
@@ -44,8 +44,8 @@ export default function FeedPage({ mode }) {
         </nav>
       )}
       {canWrite && page.hasEditor && <MemoEditor key={mode} onSubmit={handleAdd} submitLabel="추가" />}
-      {/* 공개메모 화면은 위 선택 버튼이 제목 역할이라, 제목은 눈에 안 보이게(화면 읽기 프로그램에는 읽히게) 둡니다 */}
-      <h2 className={page.subtabs ? 'sr-only' : 'page-title'}>{page.title}</h2>
+      {/* 화면 제목은 상단 아이콘·선택 버튼이 대신하므로 눈에 안 보이게(화면 읽기 프로그램에는 읽히게) 둡니다 */}
+      <h2 className={page.subtabs || page.hideTitle ? 'sr-only' : 'page-title'}>{page.title}</h2>
       {error && <p className="error">메모를 불러오지 못했습니다: {error}</p>}
       {loading ? (
         <p className="empty">불러오는 중…</p>
