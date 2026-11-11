@@ -2,7 +2,7 @@
 // - Firebase가 설정된 경우: Firestore
 //     memos/{memoId}  { uid, authorName, content, isPublic, createdAt, updatedAt }
 //     usage/{uid}     { day: 20261102, chars: 1234 }  ← 오늘(한국 시간) 쓴 글자 수
-//   · 모두의 공개 메모(로고, /): isPublic == true, 작성 시각 최신순 20개씩 (복합 색인 필요: isPublic + createdAt desc)
+//   · 모두의 공개 메모(공개메모 전체, /): isPublic == true, 작성 시각 최신순 20개씩 (복합 색인 필요: isPublic + createdAt desc)
 //   · 내 비공개 메모(나만보기, /mine), 내 공개 메모(공개메모, /public):
 //     uid == 내 uid && isPublic == false/true (전부 불러와 브라우저에서 정렬)
 //   · 하루 글자 제한: 새 메모는 글자 수 전체, 수정은 늘어난 글자 수만큼 오늘 사용량에 더합니다.

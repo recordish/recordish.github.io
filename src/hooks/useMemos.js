@@ -3,9 +3,9 @@ import { useAuth } from '../contexts/AuthContext'
 import * as memoService from '../services/memoService'
 
 // 화면별 메모 목록
-// mode: 'all'    → 나와 다른 사람의 공개 메모 (로고, /)    — 20개씩 "더 보기"
+// mode: 'all'    → 나와 다른 사람의 공개 메모 (공개메모 전체, /)    — 20개씩 "더 보기"
 //       'mine'   → 내가 쓴 비공개 메모 (나만보기, /mine)  — 한 번에
-//       'public' → 내가 쓴 공개 메모 (공개메모, /public)  — 한 번에
+//       'public' → 내가 쓴 공개 메모 (내가 쓴 공개메모, /public)  — 한 번에
 export function useFeed(mode) {
   const { user } = useAuth()
   const isFeed = mode === 'all'
@@ -64,7 +64,7 @@ export function useFeed(mode) {
   }, [next, loadingMore])
 
   const memos = useMemo(() => {
-    // 로고 화면은 공개 메모 목록, 나머지는 내 메모 목록 (둘 중 하나만 채워집니다)
+    // 전체 화면은 공개 메모 목록, 나머지는 내 메모 목록 (둘 중 하나만 채워집니다)
     // 작성 시각 기준 최신순 (수정해도 순서가 바뀌지 않음)
     const created = (m) => m.createdAt ?? m.updatedAt ?? 0
     return [...publicMemos, ...privateMemos].sort((a, b) => created(b) - created(a))
