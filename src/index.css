@@ -26,12 +26,18 @@
   }
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); }
+/* 앱(안드로이드)에서는 화면이 상태 표시줄·하단 바 밑까지 그려지므로, 그만큼 띄웁니다.
+   (--safe-area-inset-* 는 Capacitor 가 넣어주는 값, 웹 브라우저에서는 0) */
+:root {
+  --inset-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --inset-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+body { margin: 0; background: var(--bg); padding-bottom: var(--inset-bottom); }
 a { color: var(--primary-text); text-decoration: none; }
 
 .header {
   display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  padding: 8px 12px; background: var(--primary); color: #000;
+  padding: calc(8px + var(--inset-top)) 12px 8px; background: var(--primary); color: #000;
 }
 /* 왼쪽 R 로고 (앱 아이콘처럼 검은 굵은 R) */
 .logo { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;

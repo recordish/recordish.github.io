@@ -15,12 +15,12 @@ export default function Header() {
   const { pathname } = useLocation()
   // 로그인하지 않은 방문자가 나만보기·마이페이지를 누르면 로그인 화면으로 갑니다.
   const needLogin = isFirebaseConfigured && !user
-  // 공개메모 메뉴는 '전체'(/)와 '내가 쓴 공개메모'(/public) 두 화면에서 켜져 있습니다.
-  const publicActive = pathname === '/' || pathname === '/public'
+  // 공개메모 메뉴는 '전체'(/feed)와 '내가 쓴 공개메모'(/public) 두 화면에서 켜져 있습니다.
+  const publicActive = pathname === '/feed' || pathname === '/public'
 
   return (
     <header className="header">
-      <Link to="/" className="logo" aria-label="Recordish 처음으로" title="Recordish">R</Link>
+      <Link to="/" className="logo" aria-label="Recordish 첫 화면" title="Recordish">R</Link>
       <nav className="menu">
         <NavLink to={needLogin ? '/login' : '/mine'} className="menu-icon" aria-label="나만보기" title="나만보기">
           <Icon>
@@ -28,7 +28,7 @@ export default function Header() {
             <path d="M8 11V7a4 4 0 0 1 8 0v4" />
           </Icon>
         </NavLink>
-        <Link to="/" className={`menu-icon${publicActive ? ' active' : ''}`} aria-label="공개메모" title="공개메모"
+        <Link to="/feed" className={`menu-icon${publicActive ? ' active' : ''}`} aria-label="공개메모" title="공개메모"
           aria-current={publicActive ? 'page' : undefined}>
           <Icon>
             <circle cx="12" cy="12" r="9" />
