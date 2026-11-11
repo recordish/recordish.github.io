@@ -4,9 +4,10 @@
   --text: #1f2328;
   --muted: #6b7280;
   --border: #e5e7eb;
-  --primary: #5bb0f0;        /* 포인트 컬러: 연한 블루 */
-  --on-primary: #ffffff;     /* 포인트 컬러 위 글자 */
-  --primary-text: #1a73b8;   /* 흰 배경 위 파란 글자(링크, 태그) */
+  --primary: #8ec96d;        /* 포인트 컬러: 연두 (상단 배경) */
+  --primary-strong: #3d8526; /* 진한 그린: 버튼·선택된 항목 배경 (흰 글자) */
+  --on-primary: #ffffff;     /* 진한 그린 위 글자 */
+  --primary-text: #3d8526;   /* 흰 배경 위 초록 글자(링크, 아이콘) */
   --danger: #dc2626;
   font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   color: var(--text);
@@ -19,9 +20,10 @@
     --text: #e6e7ea;
     --muted: #9aa0aa;
     --border: #2c3039;
-    --primary: #5bb0f0;
+    --primary: #8ec96d;
+    --primary-strong: #3d8526;
     --on-primary: #ffffff;
-    --primary-text: #7cc4fa;
+    --primary-text: #9fd47f;
     --danger: #f87171;
   }
 }
@@ -54,7 +56,7 @@ a { color: var(--primary-text); text-decoration: none; }
 .subtabs { display: flex; gap: 8px; margin: 0 0 16px; }
 .subtab { font-size: 14px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
   background: var(--card); color: var(--muted); }
-.subtab.active { border-color: var(--primary); background: var(--primary); color: #000; font-weight: 600; }
+.subtab.active { border-color: var(--primary-strong); background: var(--primary-strong); color: var(--on-primary); font-weight: 600; }
 .page-title { font-size: 18px; margin: 0 0 12px; }
 /* 입력창 바로 아래 제목은 위쪽 여백을 줍니다 (나만보기·공개메모 화면) */
 .editor + .page-title { margin-top: 28px; }
@@ -103,7 +105,7 @@ button {
   font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
   border: 1px solid var(--border); background: var(--card); color: var(--text);
 }
-button.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); font-weight: 700; }
+button.primary { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); font-weight: 700; }
 button:disabled { opacity: 0.6; cursor: default; }
 button.danger { color: var(--danger); }
 
@@ -117,9 +119,11 @@ button.danger { color: var(--danger); }
 .more button { min-width: 140px; }
 .editor-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .visibility { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.visibility button { border: none; border-radius: 0; font-size: 14px; color: var(--muted); }
+.visibility button { border: none; border-radius: 0; font-size: 14px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.visibility button svg { color: var(--primary-text); }
 .visibility button + button { border-left: 1px solid var(--border); }
-.visibility button.on { background: var(--primary); color: var(--on-primary); font-weight: 700; }
+.visibility button.on { background: var(--primary-strong); color: var(--on-primary); font-weight: 700; }
+.visibility button.on svg { color: var(--on-primary); }
 .memo .info { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .author { font-weight: 600; color: var(--text); }
 .edited { color: var(--muted); }
@@ -134,22 +138,15 @@ button.danger { color: var(--danger); }
 @media (min-width: 768px) {
   .memo p, .editor textarea { font-size: 15px; }
 }
-/* 긴 메모는 3줄까지만 보여줍니다. 말줄임(…)은 "… 더보기" 버튼이 대신하므로
-   line-clamp(자동 … 표시) 대신 높이로 자릅니다 (줄바꿈으로 짧게 끝난 줄에 …가 두 번 보이지 않게) */
+/* 긴 메모는 3줄까지만 보여주고 "… 더보기"를 붙입니다 (자르는 위치는 MemoContent.jsx 가 글자 단위로 계산) */
 .memo p { line-height: 1.5; }
-.memo-content.clamped { max-height: 4.5em; overflow: hidden; }
-/* 메모 본문의 더보기 / 접기: 본문과 같은 글꼴·크기·줄 높이의 회색 글자로, 줄 끝에 붙입니다 */
-.memo-content { position: relative; }
+.memo-body { position: relative; }
+/* 메모 본문의 더보기 / 접기: 본문과 같은 글꼴·크기·줄 높이의 회색 글자로, 글자 바로 뒤에 붙입니다 */
 .inline-toggle {
-  border: none; background: none; padding: 0 0 0 4px; margin: 0; cursor: pointer;
+  border: none; background: none; padding: 0; margin: 0; cursor: pointer;
   font: inherit; line-height: inherit; color: var(--muted); vertical-align: baseline;
 }
 .inline-toggle:hover { color: var(--text); }
-/* 줄였을 때는 3번째 줄 오른쪽 끝에 겹쳐 두고, 왼쪽을 카드 색으로 서서히 덮어 글자가 비치지 않게 합니다 */
-.more-at-end {
-  position: absolute; right: 0; bottom: 0; padding-left: 24px;
-  background: linear-gradient(to right, transparent, var(--card) 20px);
-}
 .memo .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
 
 /* 점 세 개(⋮) 메뉴 */
