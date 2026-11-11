@@ -112,20 +112,22 @@ Recordish는 간단한 메모 앱입니다.
 ## 4. 테스트 → 출시
 
 1. **테스트 → 비공개 테스트** → 트랙 만들기 → 테스터 이메일 목록(Google 계정) 추가, **12명 이상**
-2. **새 버전 만들기** → `app-release.aab` 업로드 → 버전 이름 `1.0.0`
+2. **새 버전 만들기** → `recordish-1.1.0.aab` 업로드 → 버전 이름 `1.1.0`
 3. 앱 서명: **Google Play 앱 서명** 사용 (기본값) → 업로드 키 = 제공된 `recordish-upload.keystore`
 4. 검토 후 비공개 테스트 시작 → 테스터에게 참여 링크 공유
 5. **14일 동안 12명 이상**이 테스트를 유지하면 **프로덕션 액세스 신청** 가능
 6. 프로덕션 출시 → 심사 (보통 며칠)
 
-## 5. 업로드 후 꼭 할 일: 앱 ↔ 사이트 연결 (주소창 숨기기)
+## 5. 업로드 후 꼭 할 일: 앱 로그인 연결 (SHA-1)
 
-플레이 콘솔 → **설정 → 앱 무결성 → 앱 서명** 의 **"앱 서명 키 인증서" SHA-256 지문**을 알려주세요.
-`public/.well-known/assetlinks.json` 에 추가해야 앱 위쪽에 주소창이 사라집니다.
-(지금은 업로드 키 지문만 들어 있어서, 스토어에서 받은 앱에는 주소창이 보일 수 있습니다.)
+스토어에서 받은 앱은 **Google Play 앱 서명 키**로 다시 서명되므로, 그 키의 지문도 Firebase에 등록해야 앱에서 Google 로그인이 됩니다.
+
+1. 플레이 콘솔 → **설정 → 앱 무결성 → 앱 서명** → "앱 서명 키 인증서"의 **SHA-1** 복사
+2. Firebase 콘솔 → 프로젝트 설정 → 내 앱 → Android(`com.recordish.app`) → **디지털 지문 추가** 에 붙여넣기
+   (업로드 키 SHA-1 `D7:4F:E6:EA:7B:95:26:34:D8:C2:74:88:F6:25:22:F6:E0:76:00:53` 은 테스트용 APK 로그인에 필요)
 
 ## 6. 다음 버전 올리기
 
 1. `android/app/build.gradle` 의 `versionCode` 를 1 올리고(`2`, `3`, …) `versionName` 도 바꿈
-2. `android/` 에서 `./gradlew bundleRelease` (서명 정보 `android/keystore.properties` 필요)
+2. `npm run build && npx cap sync android` 후 `android/` 에서 `./gradlew bundleRelease` (서명 정보는 환경변수, README 참고)
 3. 사이트 내용만 바뀐 경우에는 **앱을 다시 올릴 필요가 없습니다** (앱이 사이트를 그대로 띄우기 때문)

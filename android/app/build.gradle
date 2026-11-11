@@ -1,72 +1,70 @@
-// Recordish 안드로이드 앱 (TWA: https://recordish.github.io 를 앱처럼 띄움)
-plugins {
-    id 'com.android.application'
-}
-
-// 서명 정보: android/keystore.properties (git에 올리지 않음) 또는 환경 변수
-def signingProps = new Properties()
-def signingFile = rootProject.file('keystore.properties')
-if (signingFile.exists()) signingFile.withInputStream { signingProps.load(it) }
-def sign = { String key, String env -> signingProps.getProperty(key) ?: System.getenv(env) }
+apply plugin: 'com.android.application'
 
 android {
-    namespace 'com.recordish.app'
-    compileSdk 36
-
+    namespace = "com.recordish.app"
+    compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId 'com.recordish.app'
-        minSdk 24  // Android 7.0 이상 (androidbrowserhelper 최소 요구)
-        targetSdk 36
-        // 새 버전을 올릴 때마다 versionCode 를 1씩 올려야 합니다
-        versionCode 2
-        versionName '1.0.1'
+        applicationId "com.recordish.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // 구글 플레이에 새로 올릴 때마다 1씩 올립니다 (1~3은 이전 TWA 테스트 빌드에서 사용)
+        versionCode 4
+        versionName "1.1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
     }
-
+    // 출시용 서명: 키 파일 경로와 비밀번호는 환경변수로만 받습니다 (저장소에 적지 않음).
+    //   ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+    // 값이 없으면 서명하지 않은 빌드가 만들어집니다.
+    def ks = System.getenv('ANDROID_KEYSTORE_PATH')
     signingConfigs {
         release {
-            if (sign('storeFile', 'RECORDISH_KEYSTORE')) {
-                storeFile rootProject.file(sign('storeFile', 'RECORDISH_KEYSTORE'))
-                storePassword sign('storePassword', 'RECORDISH_KEYSTORE_PASSWORD')
-                keyAlias sign('keyAlias', 'RECORDISH_KEY_ALIAS')
-                keyPassword sign('keyPassword', 'RECORDISH_KEY_PASSWORD')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
             }
         }
     }
-
-    testOptions {
-        unitTests {
-            includeAndroidResources = true
-            all {
-                it.testLogging { events 'failed', 'passed'; exceptionFormat 'full'; showStandardStreams true }
-                // 미리 받아 둔 안드로이드 환경 파일만 사용 (인터넷에서 받지 않음)
-                it.systemProperty 'robolectric.offline', 'true'
-                it.systemProperty 'robolectric.dependency.dir', '/home/user/robolectric-jars'
-                it.jvmArgs '--add-exports=java.base/jdk.internal.access=ALL-UNNAMED', '--add-opens=java.base/java.io=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED'
-            }
-        }
-    }
-
-    buildFeatures {
-        buildConfig true
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
     buildTypes {
         release {
+            if (ks) signingConfig signingConfigs.release
             minifyEnabled false
-            if (sign('storeFile', 'RECORDISH_KEYSTORE')) signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
 
-    // 실행 확인용 테스트 (Robolectric: 기기 없이 안드로이드 환경을 흉내 냄)
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.robolectric:robolectric:4.17'
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
