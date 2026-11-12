@@ -1,6 +1,6 @@
 # Recordish — 메모 앱 (React + Vite)
 
-**사이트: https://recordish.github.io/**
+**사이트: https://recordishapp.com/** (예전 주소 https://recordish.github.io 는 자동으로 이리로 넘어옵니다)
 
 React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하면 메모가 Firebase(Firestore)에 저장되어
 어느 기기에서나 같은 메모를 볼 수 있습니다.
@@ -39,15 +39,15 @@ React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하
   - **로그아웃**, **계정 삭제**
 - **계정 삭제**: 내 메모(공개·비공개 전부), 프로필, 하루 사용량, 예전 위치 메모, 로그인 계정을 모두 즉시 삭제합니다 (`deleteAccount`, `deleteAllMyData`)
   - Firebase가 최근 로그인을 요구하면 Google 로그인 창을 한 번 더 띄운 뒤 삭제합니다
-- **개인정보처리방침**: https://recordish.github.io/privacy.html (`public/privacy.html`, 로그인 없이 볼 수 있는 정적 페이지)
-  - 계정·데이터 삭제 안내: https://recordish.github.io/privacy.html#delete
+- **개인정보처리방침**: https://recordishapp.com/privacy.html (`public/privacy.html`, 로그인 없이 볼 수 있는 정적 페이지)
+  - 계정·데이터 삭제 안내: https://recordishapp.com/privacy.html#delete
   - ⚠️ **문의 이메일이 아직 "(준비 중)"입니다. 출시 전에 채워야 합니다**
 
 ## 테스터 초대 가입 (`#/invite`)
 
 일반 사용자는 Google로 로그인하고, **테스터는 초대 코드로 이메일 계정을 만들어** 쓸 수 있습니다. 메뉴에는 보이지 않는 화면입니다.
 
-- https://recordish.github.io/#/invite → **초대 코드로 가입**(코드 + 이메일 + 비밀번호) / **이메일 로그인**
+- https://recordishapp.com/#/invite → **초대 코드로 가입**(코드 + 이메일 + 비밀번호) / **이메일 로그인**
 - 초대 코드: Firestore `invites/{코드}` = `{ maxUses, uses }`. 운영자가 Firebase 콘솔에서 직접 만듭니다
   - 가입할 때마다 `uses`가 1 늘고, `maxUses`에 닿으면 더 가입할 수 없습니다
   - 코드는 입력할 때 대문자로 바꿔서 찾습니다. **문서 ID는 대문자로** 만들어 주세요 (예: `RCD-7F3K-9Q2M`)
@@ -72,7 +72,7 @@ React + Vite로 만든 메모 웹 앱입니다. Google 계정으로 로그인하
 
 ### 안드로이드 앱 (`android/`, Capacitor)
 
-**Capacitor 8** 앱입니다. 앱 안의 웹 화면(WebView)으로 https://recordish.github.io/ 를 그대로 불러오므로
+**Capacitor 8** 앱입니다. 앱 안의 웹 화면(WebView)으로 https://recordishapp.com/ 를 그대로 불러오므로
 **사이트를 배포하면 앱도 바로 최신**이 됩니다 (`capacitor.config.json` 의 `server.url`). 크롬을 거치지 않아 "Chrome에서 실행 중" 안내가 없습니다.
 
 - 패키지 이름 `com.recordish.app`, 최소 Android 7.0(API 24), 대상 API 36, AGP 8.13
@@ -126,7 +126,13 @@ npm run dev      # 개발 서버 실행 → http://localhost:5173
 ## 배포 (GitHub Pages)
 
 `main` 브랜치에 푸시하면 GitHub Actions(`.github/workflows/deploy.yml`)가 앱을 검사(`lint`)하고 빌드해서
-**https://recordish.github.io/** 에 배포합니다. Actions 탭에서 **Deploy to GitHub Pages → Run workflow**로 직접 다시 실행할 수도 있습니다.
+**https://recordishapp.com/** 에 배포합니다. Actions 탭에서 **Deploy to GitHub Pages → Run workflow**로 직접 다시 실행할 수도 있습니다.
+
+### 도메인 (recordishapp.com)
+- Cloudflare에서 구입·관리 (자동 갱신 켜 두기)
+- Cloudflare DNS (모두 **DNS only, 회색 구름**): `@` A 레코드 4개 `185.199.108.153` · `185.199.109.153` · `185.199.110.153` · `185.199.111.153`, `www` CNAME `recordish.github.io`
+- GitHub 저장소 Settings → Pages → Custom domain `recordishapp.com`, **Enforce HTTPS** 켬
+- 예전 주소 `recordish.github.io`, `www.recordishapp.com` 은 GitHub가 `https://recordishapp.com` 으로 자동 이동시킵니다
 
 - 처음 한 번만: 저장소 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 설정
 - 배포된 앱은 `.env.production`의 Firebase 설정값을 사용합니다
@@ -239,7 +245,7 @@ Firebase 프로젝트: `recordish`. 설정값은 `.env.production`에 있습니�
 ### 처음 만들 때 (이미 완료)
 1. [Firebase 콘솔](https://console.firebase.google.com)에서 프로젝트 만들기 → **웹(`</>`) 앱 추가** → `firebaseConfig` 값을 `.env.production`에 넣기
 2. **Authentication → 로그인 방법 → Google** 사용 설정
-3. **Authentication → 설정 → 승인된 도메인**에 `recordish.github.io` 추가
+3. **Authentication → 설정 → 승인된 도메인**에 `recordishapp.com`, `www.recordishapp.com` (예전 주소 `recordish.github.io` 도) 추가
 4. **Firestore Database → 데이터베이스 만들기** (프로덕션 모드, 위치 `asia-northeast3` 서울)
 
 ### 보안 규칙 반영
