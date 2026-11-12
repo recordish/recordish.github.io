@@ -3,3 +3,6 @@
 export const charCount = (s) => (s ?? '').length
 
 export const DAILY_CHAR_LIMIT = 10000
+
+// 하루에 공개할 수 있는 메모 수 (공개로 새로 쓰기 + 비공개→공개 바꾸기)
+export const DAILY_PUBLIC_LIMIT = 2

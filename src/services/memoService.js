@@ -1,11 +1,12 @@
 // 메모 데이터 접근 계층
 // - Firebase가 설정된 경우: Firestore
 //     memos/{memoId}  { uid, authorName, content, isPublic, createdAt, updatedAt }
-//     usage/{uid}     { day: 20261102, chars: 1234 }  ← 오늘(한국 시간) 쓴 글자 수
+//     usage/{uid}     { day: 20261102, chars: 1234, pubs: 1 }  ← 오늘(한국 시간) 쓴 글자 수, 공개한 메모 수
 //   · 모두의 공개 메모(공개메모 전체, /feed): isPublic == true, 작성 시각 최신순 20개씩 (복합 색인 필요: isPublic + createdAt desc)
 //   · 내 비공개 메모(나만보기, /mine), 내 공개 메모(공개메모, /public):
 //     uid == 내 uid && isPublic == false/true (전부 불러와 브라우저에서 정렬)
 //   · 하루 글자 제한: 새 메모는 글자 수 전체, 수정은 늘어난 글자 수만큼 오늘 사용량에 더합니다.
+//   · 하루 공개 제한: 공개로 새로 쓰거나, 비공개를 공개로 바꿀 때마다 1씩 더합니다 (하루 2개까지, 지워도 줄지 않음)
 //     보안 규칙(firestore.rules)이 서버에서도 같은 계산을 검사합니다.
 // - 그 외(로컬 모드): 브라우저 localStorage (글자 제한 없음)
 //
@@ -27,7 +28,7 @@ import {
 } from 'firebase/firestore/lite'
 import { db } from '../firebase/config'
 import { getAuthorName, profileRef } from './profileService'
-import { charCount, DAILY_CHAR_LIMIT } from '../utils/text'
+import { charCount, DAILY_CHAR_LIMIT, DAILY_PUBLIC_LIMIT } from '../utils/text'
 
 export const PAGE_SIZE = 20
 
@@ -69,26 +70,31 @@ function writeAll(memos) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(memos))
 }
 
-// ---------- 하루 글자 사용량 ----------
-// 오늘 이미 쓴 글자 수
+// ---------- 하루 사용량 (글자 수, 공개 메모 수) ----------
+// 오늘 이미 쓴 글자 수와 공개한 메모 수 (날짜가 바뀌면 0)
 async function getUsedToday(user) {
   const snap = await getDoc(usageRef(user.uid))
   const data = snap.exists() ? snap.data() : null
-  return data && data.day === todayKey() ? data.chars : 0
+  if (!data || data.day !== todayKey()) return { chars: 0, pubs: 0 }
+  return { chars: data.chars ?? 0, pubs: data.pubs ?? 0 }
 }
 
 class DailyLimitError extends Error {}
 
-// 글자 사용량을 더한 새 값을 계산합니다. 한도를 넘으면 오류를 냅니다.
-async function chargeChars(user, added) {
-  if (added <= 0) return null
+// 오늘 사용량에 더한 새 값을 계산합니다. 바뀔 게 없으면 null, 한도를 넘으면 오류를 냅니다.
+// addedChars: 늘어난 글자 수 (줄어든 건 0으로 침) / addedPubs: 새로 공개되는 메모 수 (0 또는 1)
+async function chargeUsage(user, addedChars, addedPubs) {
+  const chars = Math.max(addedChars, 0)
+  if (chars === 0 && addedPubs === 0) return null
   const used = await getUsedToday(user)
-  const next = used + added
-  if (next > DAILY_CHAR_LIMIT) {
+  if (used.pubs + addedPubs > DAILY_PUBLIC_LIMIT) {
+    throw new DailyLimitError(`공개 메모는 하루 ${DAILY_PUBLIC_LIMIT}개까지 쓸 수 있어요. 비공개로 저장하거나 내일 공개해 주세요.`)
+  }
+  if (used.chars + chars > DAILY_CHAR_LIMIT) {
     // 하루 글자 한도는 사용자에게 숫자나 존재를 밝히지 않습니다 (남용 방지용 내부 제한)
     throw new DailyLimitError('지금은 이 메모를 저장할 수 없어요. 나중에 다시 시도해 주세요.')
   }
-  return { day: todayKey(), chars: next }
+  return { day: todayKey(), chars: used.chars + chars, pubs: used.pubs + addedPubs }
 }
 
 // 작성자 이름이 지금 내 이름(마이페이지 이름 또는 기본 영어 이름)과 다른 메모를 맞춥니다.
@@ -146,7 +152,7 @@ export async function createMemo(user, { content, isPublic = false }) {
   const now = Date.now()
   const id = crypto.randomUUID()
   if (isCloud(user)) {
-    const usage = await chargeChars(user, charCount(content))
+    const usage = await chargeUsage(user, charCount(content), isPublic ? 1 : 0)
     const batch = writeBatch(db)
     batch.set(doc(memosCol(), id), {
       uid: user.uid,
@@ -169,7 +175,9 @@ export async function updateMemo(user, id, { content, isPublic }) {
     const ref = doc(memosCol(), id)
     const before = await getDoc(ref)
     const added = charCount(content) - charCount(before.data()?.content)
-    const usage = await chargeChars(user, added)
+    // 비공개였던 메모를 공개로 바꿀 때만 공개 수에 1을 더합니다
+    const nowPublic = isPublic && before.data()?.isPublic !== true ? 1 : 0
+    const usage = await chargeUsage(user, added, nowPublic)
     const batch = writeBatch(db)
     batch.update(ref, { content, isPublic, authorName: await authorNameOf(user), updatedAt })
     if (usage) batch.set(usageRef(user.uid), usage)

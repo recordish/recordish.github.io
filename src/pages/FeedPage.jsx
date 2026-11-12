@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import MemoEditor from '../components/MemoEditor'
 import MemoList from '../components/MemoList'
@@ -21,6 +22,8 @@ export default function FeedPage({ mode }) {
   const canWrite = !isFirebaseConfigured || Boolean(user)
   const page = PAGES[mode]
   const navigate = useNavigate()
+  // 나만보기는 옆 사람이 볼 수 있으니 처음에는 목록을 숨기고 "더보기"를 눌러야 보여줍니다 (화면에 들어올 때마다 다시 숨김)
+  const [revealed, setRevealed] = useState(mode !== 'mine')
 
   // 메모를 쓰면 그 메모가 모이는 화면으로 이동합니다 (비공개 → 나만보기, 공개 → 공개메모)
   const handleAdd = async (data) => {
@@ -50,7 +53,11 @@ export default function FeedPage({ mode }) {
       {/* 화면 제목은 상단 아이콘·선택 버튼이 대신하므로 눈에 안 보이게(화면 읽기 프로그램에는 읽히게) 둡니다 */}
       <h2 className={page.subtabs || page.hideTitle ? 'sr-only' : 'page-title'}>{page.title}</h2>
       {error && <p className="error">메모를 불러오지 못했습니다: {error}</p>}
-      {loading ? (
+      {!revealed ? (
+        <div className="more">
+          <button type="button" onClick={() => setRevealed(true)}>더보기</button>
+        </div>
+      ) : loading ? (
         <p className="empty">불러오는 중…</p>
       ) : (
         <>
