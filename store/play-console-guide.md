@@ -13,8 +13,8 @@
 | 무료 / 유료 | 무료 |
 | 카테고리 | 생산성 |
 | 문의 이메일 | **(채워 넣기)** |
-| 웹사이트 | https://recordish.github.io/ |
-| 개인정보처리방침 | https://recordish.github.io/privacy.html |
+| 웹사이트 | https://recordishapp.com/ |
+| 개인정보처리방침 | https://recordishapp.com/privacy.html |
 
 ## 2. 스토어 등록정보
 
@@ -57,7 +57,7 @@ Recordish는 간단한 메모 앱입니다.
 ## 3. 앱 콘텐츠 (정책 설문)
 
 ### 개인정보처리방침
-`https://recordish.github.io/privacy.html`
+`https://recordishapp.com/privacy.html`
 
 ### 앱 액세스 권한
 "일부 기능 또는 모든 기능이 제한됨" 선택 → 안내 추가:
@@ -66,7 +66,7 @@ Recordish는 간단한 메모 앱입니다.
 메모 작성·나만보기·공개메모·마이페이지는 로그인이 필요합니다.
 
 심사용 테스트 계정 (이메일 로그인):
-1. https://recordish.github.io/#/invite 를 열고 "이메일 로그인" 탭을 누릅니다.
+1. https://recordishapp.com/#/invite 를 열고 "이메일 로그인" 탭을 누릅니다.
 2. 이메일: (테스트 계정 이메일)
 3. 비밀번호: (테스트 계정 비밀번호)
 ```
@@ -91,7 +91,7 @@ Recordish는 간단한 메모 앱입니다.
 - 앱이 데이터를 수집하나요? **예**
 - 전송 중 데이터 암호화? **예** (HTTPS)
 - 사용자가 데이터 삭제를 요청할 수 있나요? **예** → 앱 내 계정 삭제 + 웹 URL
-- 계정 삭제 URL: `https://recordish.github.io/privacy.html#delete`
+- 계정 삭제 URL: `https://recordishapp.com/privacy.html#delete`
 
 **수집하는 데이터** (모두 "수집"이고 "공유"는 아님, 처리 목적: 앱 기능 / 계정 관리)
 
@@ -112,7 +112,7 @@ Recordish는 간단한 메모 앱입니다.
 ## 4. 테스트 → 출시
 
 1. **테스트 → 비공개 테스트** → 트랙 만들기 → 테스터 이메일 목록(Google 계정) 추가, **12명 이상**
-2. **새 버전 만들기** → `recordish-1.1.3.aab` 업로드 → 버전 이름 `1.1.3`
+2. **새 버전 만들기** → `recordish-1.1.4.aab` 업로드 → 버전 이름 `1.1.4`
 3. 앱 서명: **Google Play 앱 서명** 사용 (기본값) → 업로드 키 = 제공된 `recordish-upload.keystore`
 4. 검토 후 비공개 테스트 시작 → 테스터에게 참여 링크 공유
 5. **14일 동안 12명 이상**이 테스트를 유지하면 **프로덕션 액세스 신청** 가능

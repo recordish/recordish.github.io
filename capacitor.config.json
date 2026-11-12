@@ -16,8 +16,12 @@
     }
   },
   "server": {
-    "url": "https://recordish.github.io",
-    "allowNavigation": ["recordish.github.io"],
+    "url": "https://recordishapp.com",
+    "allowNavigation": [
+      "recordishapp.com",
+      "www.recordishapp.com",
+      "recordish.github.io"
+    ],
     "errorPath": "offline.html"
   }
 }
