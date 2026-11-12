@@ -12,13 +12,13 @@ const GlobeIcon = () => (
   </svg>
 )
 
-export default function VisibilityToggle({ isPublic, onChange }) {
+export default function VisibilityToggle({ isPublic, onChange, disabled = false }) {
   return (
     <div className="visibility" role="radiogroup" aria-label="공개 범위">
-      <button type="button" role="radio" aria-checked={!isPublic} className={!isPublic ? 'on' : ''} onClick={() => onChange(false)}>
+      <button type="button" role="radio" aria-checked={!isPublic} className={!isPublic ? 'on' : ''} disabled={disabled} onClick={() => onChange(false)}>
         <LockIcon /> 비공개
       </button>
-      <button type="button" role="radio" aria-checked={isPublic} className={isPublic ? 'on' : ''} onClick={() => onChange(true)}>
+      <button type="button" role="radio" aria-checked={isPublic} className={isPublic ? 'on' : ''} disabled={disabled} onClick={() => onChange(true)}>
         <GlobeIcon /> 공개
       </button>
     </div>

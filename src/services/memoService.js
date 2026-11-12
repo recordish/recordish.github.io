@@ -79,6 +79,19 @@ async function getUsedToday(user) {
   return { chars: data.chars ?? 0, pubs: data.pubs ?? 0 }
 }
 
+// 오늘 공개한 메모 수 (로그인 전·로컬 모드는 0)
+export async function getPublicCountToday(user) {
+  if (!isCloud(user)) return 0
+  return (await getUsedToday(user)).pubs
+}
+
+// 다음 날 0시(한국 시간)까지 남은 시간(ms). 공개 수는 그때 0으로 돌아갑니다.
+export function msUntilReset(now = Date.now()) {
+  const kst = new Date(now + 9 * 60 * 60 * 1000)
+  const nextMidnightKst = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + 1) - 9 * 60 * 60 * 1000
+  return nextMidnightKst - now
+}
+
 class DailyLimitError extends Error {}
 
 // 오늘 사용량에 더한 새 값을 계산합니다. 바뀔 게 없으면 null, 한도를 넘으면 오류를 냅니다.

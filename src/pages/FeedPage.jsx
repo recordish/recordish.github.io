@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import MemoEditor from '../components/MemoEditor'
 import MemoList from '../components/MemoList'
 import { useAuth } from '../contexts/AuthContext'
 import { isFirebaseConfigured } from '../firebase/config'
 import { useFeed } from '../hooks/useMemos'
+import { useNow } from '../hooks/useNow'
+import { getPublicCountToday, msUntilReset } from '../services/memoService'
+import { DAILY_PUBLIC_LIMIT } from '../utils/text'
 
 // hasEditor: 메모 입력창을 보여줄지 (공개메모 화면은 목록만)
 const PAGES = {
@@ -24,10 +27,26 @@ export default function FeedPage({ mode }) {
   const navigate = useNavigate()
   // 나만보기는 옆 사람이 볼 수 있으니 처음에는 목록을 숨기고 "더보기"를 눌러야 보여줍니다 (화면에 들어올 때마다 다시 숨김)
   const [revealed, setRevealed] = useState(mode !== 'mine')
+  // 공개메모 전체 화면: 오늘 공개 한도(2개)를 다 썼으면 입력창을 잠그고 언제 다시 쓸 수 있는지 알려줍니다
+  const [pubsToday, setPubsToday] = useState(0)
+  useEffect(() => {
+    if (mode !== 'all' || !user) return
+    let active = true
+    getPublicCountToday(user)
+      .then((n) => active && setPubsToday(n))
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [mode, user])
+  const now = useNow(60000)
+  const locked = mode === 'all' && pubsToday >= DAILY_PUBLIC_LIMIT
+  const lockedText = locked ? publicLimitText(msUntilReset(now)) : ''
 
   // 메모를 쓰면 그 메모가 모이는 화면으로 이동합니다 (비공개 → 나만보기, 공개 → 공개메모)
   const handleAdd = async (data) => {
     const ok = await addMemo(data)
+    if (ok && data.isPublic) setPubsToday((n) => n + 1)
     const target = data.isPublic ? '/public' : '/mine'
     if (ok && target !== `/${mode}`) navigate(target)
     return ok
@@ -48,7 +67,7 @@ export default function FeedPage({ mode }) {
       )}
       {canWrite && page.hasEditor && (
         // 공개메모 화면의 입력창은 '공개'가 기본, 나만보기는 '비공개'가 기본
-        <MemoEditor key={mode} initial={{ content: '', isPublic: mode !== 'mine' }} onSubmit={handleAdd} submitLabel="추가" />
+        <MemoEditor key={mode} initial={{ content: '', isPublic: mode !== 'mine' }} onSubmit={handleAdd} submitLabel="추가" lockedText={lockedText} />
       )}
       {/* 화면 제목은 상단 아이콘·선택 버튼이 대신하므로 눈에 안 보이게(화면 읽기 프로그램에는 읽히게) 둡니다 */}
       <h2 className={page.subtabs || page.hideTitle ? 'sr-only' : 'page-title'}>{page.title}</h2>
@@ -80,4 +99,13 @@ export default function FeedPage({ mode }) {
       )}
     </>
   )
+}
+
+// "공개 메모는 하루 2개까지 쓸 수 있어요. 5시간 20분 후에 다시 쓸 수 있어요." (한국 시간 0시에 다시 열림)
+function publicLimitText(ms) {
+  const mins = Math.max(1, Math.ceil(ms / 60000))
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  const left = h > 0 ? `${h}시간${m ? ` ${m}분` : ''}` : `${m}분`
+  return `공개 메모는 하루 ${DAILY_PUBLIC_LIMIT}개까지 쓸 수 있어요. (지워도 다시 늘어나지 않아요)\n${left} 후(자정)에 다시 쓸 수 있어요.`
 }
