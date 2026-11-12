@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { friendlySaveError } from '../utils/updateCheck'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import MemoEditor from '../components/MemoEditor'
 import MemoList from '../components/MemoList'
@@ -55,7 +56,7 @@ export default function FeedPage({ mode }) {
       await agreeTerms(user)
       return true
     } catch (e) {
-      alert(`저장하지 못했습니다.\n${e.message}`)
+      alert(`저장하지 못했습니다.\n${friendlySaveError(e)}`)
       return false
     }
   }
@@ -76,7 +77,7 @@ export default function FeedPage({ mode }) {
       await reportMemo(memo, answer.choice)
       alert('신고했어요. 확인 후 처리할게요.')
     } catch (e) {
-      alert(`신고하지 못했습니다.\n${e.message}`)
+      alert(`신고하지 못했습니다.\n${friendlySaveError(e)}`)
     }
   }
 
@@ -94,7 +95,7 @@ export default function FeedPage({ mode }) {
     try {
       await blockUser(memo)
     } catch (e) {
-      alert(`차단하지 못했습니다.\n${e.message}`)
+      alert(`차단하지 못했습니다.\n${friendlySaveError(e)}`)
     }
   }
 
