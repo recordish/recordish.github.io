@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { deleteAccount, isEmailUser, logout } from '../services/authService'
 import { defaultName, NAME_MAX, updateName, validateName } from '../services/profileService'
+import { getBlocked, unblockUser } from '../services/safetyService'
 import { fullDateTime } from '../utils/relativeTime'
 
 const formatDate = (value) => (value ? fullDateTime(new Date(value).getTime()) : '-')
 
-// 마이페이지: 내 정보, 이름(공개 메모 작성자) 확인·수정, 가입일·마지막 접속·접속 횟수, 로그아웃, 계정 삭제
+// 마이페이지: 내 정보, 이름(공개 메모 작성자) 확인·수정, 가입일·마지막 접속·접속 횟수, 차단한 사용자, 로그아웃, 계정 삭제
 export default function AccountPage() {
   const { user, profile, setProfile } = useAuth()
   const navigate = useNavigate()
@@ -16,6 +17,23 @@ export default function AccountPage() {
   const [nameError, setNameError] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // 차단한 사용자 (null = 불러오는 중)
+  const [blocked, setBlocked] = useState(null)
+  useEffect(() => {
+    if (!user) return
+    getBlocked(user)
+      .then(setBlocked)
+      .catch(() => setBlocked([]))
+  }, [user])
+
+  const handleUnblock = async (b) => {
+    if (!confirm(`${b.name || '이 사용자'} 님의 차단을 해제할까요?`)) return
+    try {
+      setBlocked(await unblockUser(user, b.uid))
+    } catch (e) {
+      alert(`해제하지 못했습니다.\n${e.message}`)
+    }
+  }
 
   if (!user) return <p className="empty">로컬 모드에서는 마이페이지가 없습니다.</p>
 
@@ -133,10 +151,30 @@ export default function AccountPage() {
         </dl>
       </section>
 
+      <section className="card">
+        <h3>차단한 사용자</h3>
+        {blocked === null ? (
+          <p className="hint">불러오는 중…</p>
+        ) : blocked.length === 0 ? (
+          <p className="hint">차단한 사용자가 없어요. 공개 메모의 ⋮ 메뉴에서 차단할 수 있어요.</p>
+        ) : (
+          <ul className="blocked-list">
+            {blocked.map((b) => (
+              <li key={b.uid}>
+                <span>{b.name || '이름 없음'}</span>
+                <button type="button" onClick={() => handleUnblock(b)}>해제</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <button type="button" onClick={handleLogout}>로그아웃</button>
 
       {/* 계정 삭제는 눈에 띄지 않게 하단 링크 옆에 둡니다 (누르면 확인창이 한 번 더 뜸) */}
       <p className="links footer-links">
+        <a href="/terms.html">이용약관</a>
+        <span aria-hidden="true">·</span>
         <a href="/privacy.html">개인정보처리방침</a>
         <span aria-hidden="true">·</span>
         <button type="button" className="link-button" onClick={handleDelete} disabled={deleting}>

@@ -23,6 +23,7 @@ import { doc, getDoc, increment, writeBatch } from 'firebase/firestore/lite'
 import { auth, db } from '../firebase/config'
 import { deleteAllMyData } from './memoService'
 import { clearProfileCache } from './profileService'
+import { clearSafetyCache } from './safetyService'
 
 const memberRef = (uid) => doc(db, 'members', uid)
 const inviteRef = (code) => doc(db, 'invites', code)
@@ -149,6 +150,7 @@ export async function loginWithEmail(email, password) {
 
 export async function logout() {
   clearProfileCache()
+  clearSafetyCache()
   nativeGoogleLogout()
   if (auth) await signOut(auth)
 }
@@ -176,5 +178,6 @@ export async function deleteAccount() {
     await deleteUser(user)
   }
   clearProfileCache()
+  clearSafetyCache()
   nativeGoogleLogout()
 }

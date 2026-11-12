@@ -165,7 +165,7 @@ button.danger { color: var(--danger); }
 }
 .more-menu-list button {
   display: block; width: 100%; text-align: left; border: none; border-radius: 6px;
-  background: transparent; padding: 8px 12px; font-size: 14px;
+  background: transparent; padding: 8px 12px; font-size: 14px; white-space: nowrap;
 }
 .more-menu-list button:hover, .more-menu-list button:focus-visible { background: var(--bg); outline: none; }
 .memo .editor { padding: 0; border: none; }
@@ -218,3 +218,30 @@ button.danger { color: var(--danger); }
 .editor.locked textarea { background: var(--bg); cursor: not-allowed; }
 .editor.locked textarea::placeholder { color: var(--muted); opacity: 1; }
 .editor textarea:disabled, .editor button:disabled { cursor: not-allowed; }
+
+/* 확인 창 (신고 이유, 커뮤니티 규칙, 차단) */
+.dialog-backdrop {
+  position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(0, 0, 0, 0.45);
+}
+.dialog-box {
+  width: 100%; max-width: 380px; max-height: calc(100vh - 32px); overflow: auto; padding: 20px;
+  border-radius: 12px; background: var(--card); color: var(--text); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.dialog-box h3 { margin: 0 0 10px; font-size: 17px; }
+.dialog-body { font-size: 14px; line-height: 1.6; color: var(--text); }
+.dialog-body p { margin: 0 0 8px; }
+.dialog-body ul { margin: 0 0 8px; padding-left: 20px; }
+.dialog-choices { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; }
+.dialog-choices label {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 15px; cursor: pointer;
+}
+.dialog-choices label.on { border-color: var(--primary-strong); }
+.dialog-choices input { accent-color: var(--primary-strong); margin: 0; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.dialog-actions button { min-width: 72px; }
+
+/* 마이페이지: 차단한 사용자 */
+.blocked-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.blocked-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

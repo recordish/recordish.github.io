@@ -8,11 +8,50 @@ service cloud.firestore {
       return t.year() * 10000 + t.month() * 100 + t.day();
     }
 
-    // 쓰기 권한: Google 로그인 계정, 또는 초대 코드로 가입한(members 문서가 있는) 이메일 계정
+    // 쓰기 권한: Google 로그인 계정, 또는 초대 코드로 가입한(members 문서가 있는) 이메일 계정.
+    // 운영자가 이용을 제한한 계정(banned 문서가 있음)은 읽기만 할 수 있습니다.
     function isMember() {
       return request.auth != null
         && (request.auth.token.firebase.sign_in_provider == 'google.com'
-            || exists(/databases/$(database)/documents/members/$(request.auth.uid)));
+            || exists(/databases/$(database)/documents/members/$(request.auth.uid)))
+        && !exists(/databases/$(database)/documents/banned/$(request.auth.uid));
+    }
+
+    // ---------- 이용 제한: banned/{uid} = { reason, at } (운영자가 Firebase 콘솔에서 만듦) ----------
+    // 본인은 제한됐는지만 확인할 수 있고, 아무도 만들거나 지울 수 없습니다(콘솔에서만).
+    match /banned/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ---------- 내 설정: prefs/{uid} = { blocked: [{ uid, name }], termsAt } ----------
+    // blocked: 내가 차단한 사용자(최대 200명), termsAt: 커뮤니티 규칙에 동의한 시각. 본인만 읽고 씁니다.
+    match /prefs/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['blocked', 'termsAt'])
+        && request.resource.data.get('blocked', []) is list
+        && request.resource.data.get('blocked', []).size() <= 200
+        && (request.resource.data.get('termsAt', null) == null || request.resource.data.termsAt is number);
+    }
+
+    // ---------- 신고: reports/{메모ID}_{신고한 사람 uid} = { memoId, memoUid, reporterUid, reason, createdAt } ----------
+    // 다른 사람의 공개 메모만, 한 사람이 한 메모에 한 번 신고할 수 있습니다.
+    // 신고 내용은 신고한 본인과 운영자(콘솔)만 볼 수 있고, 수정은 불가, 삭제는 본인(회원 탈퇴용)만.
+    match /reports/{reportId} {
+      function memoPath(id) {
+        return /databases/$(database)/documents/memos/$(id);
+      }
+      allow read, delete: if request.auth != null && resource.data.reporterUid == request.auth.uid;
+      allow create: if isMember()
+        && request.resource.data.keys().hasOnly(['memoId', 'memoUid', 'reporterUid', 'reason', 'createdAt'])
+        && reportId == request.resource.data.memoId + '_' + request.auth.uid
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.reason in ['spam', 'abuse', 'sexual', 'privacy', 'other']
+        && request.resource.data.createdAt is number
+        && exists(memoPath(request.resource.data.memoId))
+        && get(memoPath(request.resource.data.memoId)).data.isPublic == true
+        && get(memoPath(request.resource.data.memoId)).data.uid == request.resource.data.memoUid
+        && request.resource.data.memoUid != request.auth.uid;
     }
 
     // ---------- 초대 코드: invites/{코드} = { maxUses, uses } (운영자가 Firebase 콘솔에서 만듦) ----------
@@ -123,11 +162,17 @@ service cloud.firestore {
         return (exists(usagePath()) && get(usagePath()).data.day == today())
           ? get(usagePath()).data.get('pubs', 0) : 0;
       }
-      // 새로 공개되는 메모(공개로 새로 쓰기, 비공개→공개)는 같은 batch에서 공개 수가 정확히 1 늘어야 합니다
+      // 새로 공개되는 메모(공개로 새로 쓰기, 비공개→공개)는 커뮤니티 규칙에 동의했어야 하고, 같은 batch에서 공개 수가 정확히 1 늘어야 합니다
       // (사용량 문서 규칙이 하루 2개를 넘지 못하게 막습니다)
+      // 커뮤니티 규칙에 동의했는지 (공개 메모를 쓰려면 필요)
+      function agreedTerms() {
+        let prefs = /databases/$(database)/documents/prefs/$(request.auth.uid);
+        return exists(prefs) && get(prefs).data.get('termsAt', null) is number;
+      }
       function pubCharged(becomesPublic) {
         return !becomesPublic
-          || (getAfter(usagePath()).data.day == today()
+          || (agreedTerms()
+              && getAfter(usagePath()).data.day == today()
               && getAfter(usagePath()).data.get('pubs', 0) == pubsBefore() + 1);
       }
 

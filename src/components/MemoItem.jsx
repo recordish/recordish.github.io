@@ -6,7 +6,8 @@ import MoreMenu from './MoreMenu'
 
 // readOnly: 남의 메모처럼 수정/삭제 메뉴 없이 보여줄 때
 // showAuthor: 작성자 번호 표시 (공개 메모)
-export default function MemoItem({ memo, now, onUpdate, onDelete, readOnly = false, showAuthor = false }) {
+// onReport / onBlock: 남의 공개 메모에 ⋮(신고 / 이 사용자 차단) 메뉴를 붙일 때 (로그인했을 때만 넘겨줌)
+export default function MemoItem({ memo, now, onUpdate, onDelete, onReport, onBlock, readOnly = false, showAuthor = false }) {
   const [editing, setEditing] = useState(false)
   // 시간은 작성 시각으로 보여주고, 작성 뒤 1분 넘게 지나 고친 메모에는 "수정됨"을 붙입니다
   const createdAt = memo.createdAt ?? memo.updatedAt
@@ -54,6 +55,15 @@ export default function MemoItem({ memo, now, onUpdate, onDelete, readOnly = fal
             items={[
               { label: '수정', onSelect: () => setEditing(true) },
               { label: '삭제', danger: true, onSelect: () => confirm('삭제할까요?') && onDelete(memo.id) },
+            ]}
+          />
+        )}
+        {readOnly && memo.isPublic && onReport && (
+          <MoreMenu
+            label="메모 메뉴"
+            items={[
+              { label: '신고', danger: true, onSelect: () => onReport(memo) },
+              { label: '이 사용자 차단', onSelect: () => onBlock(memo) },
             ]}
           />
         )}

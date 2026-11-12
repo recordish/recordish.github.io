@@ -4,9 +4,11 @@ import MemoEditor from '../components/MemoEditor'
 import MemoList from '../components/MemoList'
 import { useAuth } from '../contexts/AuthContext'
 import { isFirebaseConfigured } from '../firebase/config'
+import { useDialog } from '../hooks/useDialog'
 import { useFeed } from '../hooks/useMemos'
 import { useNow } from '../hooks/useNow'
 import { getPublicCountToday, msUntilReset } from '../services/memoService'
+import { agreeTerms, hasAgreedTerms, REPORT_REASONS } from '../services/safetyService'
 import { DAILY_PUBLIC_LIMIT } from '../utils/text'
 
 // hasEditor: 메모 입력창을 보여줄지 (공개메모 화면은 목록만)
@@ -19,12 +21,89 @@ const PAGES = {
 
 // mode: 'all' (공개메모 전체, /feed) | 'mine' (나만보기, /mine) | 'public' (내가 쓴 공개메모, /public)
 export default function FeedPage({ mode }) {
-  const { memos, loading, loadingMore, error, hasMore, loadMore, addMemo, editMemo, removeMemo } = useFeed(mode)
+  const { memos, loading, loadingMore, error, hasMore, loadMore, addMemo, editMemo, removeMemo, reportMemo, blockUser } = useFeed(mode)
   const { user, loading: authLoading } = useAuth()
   const isGuest = isFirebaseConfigured && !authLoading && !user
   const canWrite = !isFirebaseConfigured || Boolean(user)
   const page = PAGES[mode]
   const navigate = useNavigate()
+  const [dialog, ask] = useDialog()
+
+  // 공개 메모를 처음 쓸 때(공개로 새로 쓰기, 비공개→공개) 커뮤니티 규칙 동의를 한 번 받습니다
+  const ensureTerms = async () => {
+    try {
+      if (await hasAgreedTerms(user)) return true
+      const answer = await ask({
+        title: '커뮤니티 규칙',
+        body: (
+          <>
+            <p>공개 메모는 누구나 볼 수 있어요. 아래 글은 쓸 수 없고, 신고되면 삭제되거나 이용이 제한될 수 있어요.</p>
+            <ul>
+              <li>스팸·광고, 욕설·혐오·괴롭힘</li>
+              <li>성적인 내용, 폭력적이거나 불법적인 내용</li>
+              <li>나나 다른 사람의 개인정보(전화번호, 주소 등)</li>
+            </ul>
+            <p><a href="/terms.html" target="_blank" rel="noopener noreferrer">이용약관 전체 보기</a></p>
+          </>
+        ),
+        actions: [
+          { value: 'no', label: '취소' },
+          { value: 'yes', label: '동의하고 공개', primary: true },
+        ],
+      })
+      if (answer !== 'yes') return false
+      await agreeTerms(user)
+      return true
+    } catch (e) {
+      alert(`저장하지 못했습니다.\n${e.message}`)
+      return false
+    }
+  }
+
+  // 남의 공개 메모 신고 (이유 고르기)
+  const handleReport = async (memo) => {
+    const answer = await ask({
+      title: '이 메모를 신고할까요?',
+      body: <p>운영자가 확인한 뒤 처리해요. 신고한 메모는 내 화면에서 바로 숨겨져요.</p>,
+      choices: REPORT_REASONS,
+      actions: [
+        { value: 'no', label: '취소' },
+        { value: 'yes', label: '신고', primary: true },
+      ],
+    })
+    if (answer?.action !== 'yes') return
+    try {
+      await reportMemo(memo, answer.choice)
+      alert('신고했어요. 확인 후 처리할게요.')
+    } catch (e) {
+      alert(`신고하지 못했습니다.\n${e.message}`)
+    }
+  }
+
+  // 사용자 차단 (그 사람의 공개 메모가 더 이상 안 보임, 마이페이지에서 해제)
+  const handleBlock = async (memo) => {
+    const answer = await ask({
+      title: `${memo.authorName || '이 사용자'} 님을 차단할까요?`,
+      body: <p>이 사람의 공개 메모가 더 이상 보이지 않아요. 상대방에게는 알리지 않고, 마이페이지에서 언제든 해제할 수 있어요.</p>,
+      actions: [
+        { value: 'no', label: '취소' },
+        { value: 'yes', label: '차단', primary: true },
+      ],
+    })
+    if (answer !== 'yes') return
+    try {
+      await blockUser(memo)
+    } catch (e) {
+      alert(`차단하지 못했습니다.\n${e.message}`)
+    }
+  }
+
+  // 비공개였던 내 메모를 공개로 바꿀 때도 규칙 동의를 받습니다
+  const handleEdit = async (id, data) => {
+    const before = memos.find((m) => m.id === id)
+    if (data.isPublic && !before?.isPublic && !(await ensureTerms())) return false
+    return editMemo(id, data)
+  }
   // 나만보기는 옆 사람이 볼 수 있으니 처음에는 목록을 숨기고 "더보기"를 눌러야 보여줍니다 (화면에 들어올 때마다 다시 숨김)
   const [revealed, setRevealed] = useState(mode !== 'mine')
   // 공개메모 전체 화면: 오늘 공개 한도(2개)를 다 썼으면 입력창을 잠그고 언제 다시 쓸 수 있는지 알려줍니다
@@ -45,6 +124,7 @@ export default function FeedPage({ mode }) {
 
   // 메모를 쓰면 그 메모가 모이는 화면으로 이동합니다 (비공개 → 나만보기, 공개 → 공개메모)
   const handleAdd = async (data) => {
+    if (data.isPublic && !(await ensureTerms())) return false
     const ok = await addMemo(data)
     if (ok && data.isPublic) setPubsToday((n) => n + 1)
     const target = data.isPublic ? '/public' : '/mine'
@@ -54,6 +134,7 @@ export default function FeedPage({ mode }) {
 
   return (
     <>
+      {dialog}
       {isGuest && (
         <p className="notice">
           <Link to="/login">Google로 로그인</Link>하면 나만의 메모를 쓰고, 원하는 메모를 공개할 수 있어요.
@@ -87,8 +168,11 @@ export default function FeedPage({ mode }) {
             isOwn={(memo) => !isFirebaseConfigured || memo.uid === user?.uid}
             // 작성자 이름은 여러 사람의 메모가 섞이는 '전체' 화면에서만 보여줍니다
             showAuthor={mode === 'all'}
-            onUpdate={editMemo}
+            onUpdate={handleEdit}
             onDelete={removeMemo}
+            // 로그인한 사람만 남의 공개 메모를 신고·차단할 수 있습니다
+            onReport={user ? handleReport : undefined}
+            onBlock={user ? handleBlock : undefined}
           />
           {hasMore && (
             <div className="more">

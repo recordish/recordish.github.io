@@ -28,6 +28,7 @@ import {
 } from 'firebase/firestore/lite'
 import { db } from '../firebase/config'
 import { getAuthorName, profileRef } from './profileService'
+import { deleteMySafetyData } from './safetyService'
 import { charCount, DAILY_CHAR_LIMIT, DAILY_PUBLIC_LIMIT } from '../utils/text'
 
 export const PAGE_SIZE = 20
@@ -208,10 +209,11 @@ export async function deleteMemo(user, id) {
   writeAll(readAll().filter((m) => m.id !== id))
 }
 
-// 회원 탈퇴용: 내 메모(공개·비공개 전부), 하루 사용량, 예전 위치의 메모를 모두 지웁니다.
+// 회원 탈퇴용: 내 메모(공개·비공개 전부), 하루 사용량, 프로필, 신고 기록, 차단 목록, 예전 위치의 메모를 모두 지웁니다.
 // 한 번에 지울 수 있는 개수(500)를 넘지 않도록 나눠서 지웁니다.
 export async function deleteAllMyData(user) {
   if (!isCloud(user)) return
+  await deleteMySafetyData(user) // 내 신고 기록, 차단 목록·규칙 동의
   const refs = [
     ...(await getDocs(query(memosCol(), where('uid', '==', user.uid)))).docs.map((d) => d.ref),
     ...(await getDocs(collection(db, 'users', user.uid, 'memos'))).docs.map((d) => d.ref),
