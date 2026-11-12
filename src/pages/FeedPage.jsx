@@ -7,8 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { isFirebaseConfigured } from '../firebase/config'
 import { useDialog } from '../hooks/useDialog'
 import { useFeed } from '../hooks/useMemos'
-import { useNow } from '../hooks/useNow'
-import { getPublicCountToday, msUntilReset } from '../services/memoService'
+import { getPublicCountToday } from '../services/memoService'
 import { agreeTerms, hasAgreedTerms, REPORT_REASONS } from '../services/safetyService'
 import { DAILY_PUBLIC_LIMIT } from '../utils/text'
 
@@ -107,7 +106,7 @@ export default function FeedPage({ mode }) {
   }
   // 나만보기는 옆 사람이 볼 수 있으니 처음에는 목록을 숨기고 "더보기"를 눌러야 보여줍니다 (화면에 들어올 때마다 다시 숨김)
   const [revealed, setRevealed] = useState(mode !== 'mine')
-  // 공개메모 전체 화면: 오늘 공개 한도(2개)를 다 썼으면 입력창을 잠그고 언제 다시 쓸 수 있는지 알려줍니다
+  // 공개메모 전체 화면: 오늘 공개 한도(2개)를 다 썼으면 입력창을 잠그고 안내 문구를 보여줍니다
   const [pubsToday, setPubsToday] = useState(0)
   useEffect(() => {
     if (mode !== 'all' || !user) return
@@ -119,9 +118,8 @@ export default function FeedPage({ mode }) {
       active = false
     }
   }, [mode, user])
-  const now = useNow(60000)
   const locked = mode === 'all' && pubsToday >= DAILY_PUBLIC_LIMIT
-  const lockedText = locked ? publicLimitText(msUntilReset(now)) : ''
+  const lockedText = locked ? `공개메모는 하루에 ${DAILY_PUBLIC_LIMIT}개까지만 작성가능합니다` : ''
 
   // 메모를 쓰면 그 메모가 모이는 화면으로 이동합니다 (비공개 → 나만보기, 공개 → 공개메모)
   const handleAdd = async (data) => {
@@ -184,13 +182,4 @@ export default function FeedPage({ mode }) {
       )}
     </>
   )
-}
-
-// "공개 메모는 하루 2개까지 쓸 수 있어요. 5시간 20분 후에 다시 쓸 수 있어요." (한국 시간 0시에 다시 열림)
-function publicLimitText(ms) {
-  const mins = Math.max(1, Math.ceil(ms / 60000))
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  const left = h > 0 ? `${h}시간${m ? ` ${m}분` : ''}` : `${m}분`
-  return `공개 메모는 하루 ${DAILY_PUBLIC_LIMIT}개까지 쓸 수 있어요. (지워도 다시 늘어나지 않아요)\n${left} 후(자정)에 다시 쓸 수 있어요.`
 }

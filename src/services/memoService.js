@@ -86,13 +86,6 @@ export async function getPublicCountToday(user) {
   return (await getUsedToday(user)).pubs
 }
 
-// 다음 날 0시(한국 시간)까지 남은 시간(ms). 공개 수는 그때 0으로 돌아갑니다.
-export function msUntilReset(now = Date.now()) {
-  const kst = new Date(now + 9 * 60 * 60 * 1000)
-  const nextMidnightKst = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + 1) - 9 * 60 * 60 * 1000
-  return nextMidnightKst - now
-}
-
 class DailyLimitError extends Error {}
 
 // 오늘 사용량에 더한 새 값을 계산합니다. 바뀔 게 없으면 null, 한도를 넘으면 오류를 냅니다.
@@ -102,7 +95,7 @@ async function chargeUsage(user, addedChars, addedPubs) {
   if (chars === 0 && addedPubs === 0) return null
   const used = await getUsedToday(user)
   if (used.pubs + addedPubs > DAILY_PUBLIC_LIMIT) {
-    throw new DailyLimitError(`공개 메모는 하루 ${DAILY_PUBLIC_LIMIT}개까지 쓸 수 있어요. 비공개로 저장하거나 내일 공개해 주세요.`)
+    throw new DailyLimitError(`공개메모는 하루에 ${DAILY_PUBLIC_LIMIT}개까지만 작성가능합니다`)
   }
   if (used.chars + chars > DAILY_CHAR_LIMIT) {
     // 하루 글자 한도는 사용자에게 숫자나 존재를 밝히지 않습니다 (남용 방지용 내부 제한)
