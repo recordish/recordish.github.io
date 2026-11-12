@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { setupNative } from './native'
+import { setupUpdateCheck } from './utils/updateCheck'
 
 // 앱 설치(PWA)와 오프라인 안내를 위한 서비스 워커 (배포된 사이트에서만)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -12,6 +13,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 }
 
 setupNative()
+setupUpdateCheck()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

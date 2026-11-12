@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { friendlySaveError } from '../utils/updateCheck'
 import { useAuth } from '../contexts/AuthContext'
 import * as memoService from '../services/memoService'
 import * as safety from '../services/safetyService'
@@ -84,7 +85,7 @@ export function useFeed(mode) {
       await reload()
       return true
     } catch (e) {
-      alert(`저장하지 못했습니다.\n${e.message}`)
+      alert(`저장하지 못했습니다.\n${friendlySaveError(e)}`)
       return false
     }
   }
