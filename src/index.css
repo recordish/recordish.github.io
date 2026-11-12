@@ -213,3 +213,8 @@ button.danger { color: var(--danger); }
   transition: opacity 0.15s, transform 0.15s;
 }
 .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 하루 공개 한도를 다 써서 잠긴 입력창 */
+.editor.locked textarea { background: var(--bg); cursor: not-allowed; }
+.editor.locked textarea::placeholder { color: var(--muted); opacity: 1; }
+.editor textarea:disabled, .editor button:disabled { cursor: not-allowed; }
