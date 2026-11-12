@@ -204,16 +204,6 @@ button.danger { color: var(--danger); }
 .exit-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .exit-dialog-actions button { min-width: 72px; }
 
-/* 안드로이드 앱: 뒤로가기 안내 (아래쪽에 잠깐) */
-.app-toast {
-  position: fixed; left: 50%; bottom: calc(32px + var(--inset-bottom)); z-index: 90;
-  transform: translateX(-50%) translateY(8px); opacity: 0; pointer-events: none;
-  max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px;
-  background: rgba(32, 33, 36, 0.9); color: #fff; font-size: 14px; white-space: nowrap;
-  transition: opacity 0.15s, transform 0.15s;
-}
-.app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
 /* 하루 공개 한도를 다 써서 잠긴 입력창 */
 .editor.locked textarea { background: var(--bg); cursor: not-allowed; }
 .editor.locked textarea::placeholder { color: var(--muted); opacity: 1; }
