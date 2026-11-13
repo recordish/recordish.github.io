@@ -27,7 +27,13 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request.url, { cache: 'no-cache', credentials: 'same-origin' }).catch(() => caches.match(OFFLINE_URL)))
+    event.respondWith(
+      fetch(request.url, { cache: 'no-cache', credentials: 'same-origin' })
+        // 주소가 넘어간 응답(/leelmell → /leelmell/ 등)을 그대로 돌려주면 브라우저가 거부(ERR_FAILED)하므로
+        // 넘어간 주소로 다시 이동시킵니다
+        .then((response) => (response.redirected ? Response.redirect(response.url, 302) : response))
+        .catch(() => caches.match(OFFLINE_URL)),
+    )
     return
   }
 
