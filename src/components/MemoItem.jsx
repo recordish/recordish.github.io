@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { fullDateTime, relativeTime } from '../utils/relativeTime'
+import CopyButton from './CopyButton'
 import MemoContent from './MemoContent'
 import MemoEditor from './MemoEditor'
 import MoreMenu from './MoreMenu'
@@ -49,24 +50,27 @@ export default function MemoItem({ memo, now, onUpdate, onDelete, onReport, onBl
           </time>
           {edited && <span className="edited">· 수정됨</span>}
         </span>
-        {!readOnly && (
-          <MoreMenu
-            label="메모 메뉴"
-            items={[
-              { label: '수정', onSelect: () => setEditing(true) },
-              { label: '삭제', danger: true, onSelect: () => confirm('삭제할까요?') && onDelete(memo.id) },
-            ]}
-          />
-        )}
-        {readOnly && memo.isPublic && onReport && (
-          <MoreMenu
-            label="메모 메뉴"
-            items={[
-              { label: '신고', danger: true, onSelect: () => onReport(memo) },
-              { label: '이 사용자 차단', onSelect: () => onBlock(memo) },
-            ]}
-          />
-        )}
+        <span className="memo-actions">
+          <CopyButton text={memo.content} />
+          {!readOnly && (
+            <MoreMenu
+              label="메모 메뉴"
+              items={[
+                { label: '수정', onSelect: () => setEditing(true) },
+                { label: '삭제', danger: true, onSelect: () => confirm('삭제할까요?') && onDelete(memo.id) },
+              ]}
+            />
+          )}
+          {readOnly && memo.isPublic && onReport && (
+            <MoreMenu
+              label="메모 메뉴"
+              items={[
+                { label: '신고', danger: true, onSelect: () => onReport(memo) },
+                { label: '이 사용자 차단', onSelect: () => onBlock(memo) },
+              ]}
+            />
+          )}
+        </span>
       </div>
     </li>
   )

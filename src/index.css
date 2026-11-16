@@ -149,6 +149,16 @@ button.danger { color: var(--danger); }
 .inline-toggle:hover { color: var(--text); }
 .memo .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
 
+/* 메모 카드 오른쪽 아래 버튼들 (복사, ⋮) */
+.memo-actions { display: inline-flex; align-items: center; gap: 2px; flex: none; }
+.icon-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; padding: 0; border: none; border-radius: 50%;
+  background: transparent; color: var(--muted);
+}
+.icon-button:hover { background: var(--bg); color: var(--text); }
+.icon-button.done { color: var(--primary-text); }
+
 /* 점 세 개(⋮) 메뉴 */
 .more-menu { position: relative; }
 .more-menu-button {
