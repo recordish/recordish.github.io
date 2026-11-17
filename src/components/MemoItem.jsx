@@ -33,6 +33,8 @@ export default function MemoItem({ memo, now, onUpdate, onDelete, onReport, onBl
 
   return (
     <li className="memo">
+      {/* 복사 버튼은 카드 오른쪽 위 (본문은 그만큼 오른쪽을 비워 둠) */}
+      <CopyButton text={memo.content} />
       <MemoContent content={memo.content} />
       <div className="meta">
         <span className="info">
@@ -51,7 +53,6 @@ export default function MemoItem({ memo, now, onUpdate, onDelete, onReport, onBl
           {edited && <span className="edited">· 수정됨</span>}
         </span>
         <span className="memo-actions">
-          <CopyButton text={memo.content} />
           {!readOnly && (
             <MoreMenu
               label="메모 메뉴"
