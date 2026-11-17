@@ -130,7 +130,10 @@ button.danger { color: var(--danger); }
 .lock { display: inline-flex; color: var(--muted); }
 
 .memo-list { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 12px; }
-.memo { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.memo { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+/* 복사 버튼: 카드 오른쪽 위. 본문이 버튼과 겹치지 않게 오른쪽을 비워 둡니다 */
+.memo > .icon-button { position: absolute; top: 6px; right: 6px; z-index: 1; }
+.memo > .memo-body { padding-right: 30px; }
 .memo p { margin: 0; white-space: pre-wrap; word-break: break-word; }
 /* 본문 글자 크기: 휴대폰 16px, PC(768px 이상) 15px
    (휴대폰 입력창은 16px 미만이면 iOS가 확대해 버리므로 그대로 둡니다) */
@@ -149,7 +152,7 @@ button.danger { color: var(--danger); }
 .inline-toggle:hover { color: var(--text); }
 .memo .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
 
-/* 메모 카드 오른쪽 아래 버튼들 (복사, ⋮) */
+/* 메모 카드 오른쪽 아래 버튼 (⋮) */
 .memo-actions { display: inline-flex; align-items: center; gap: 2px; flex: none; }
 .icon-button {
   display: inline-flex; align-items: center; justify-content: center;
