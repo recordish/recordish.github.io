@@ -9,7 +9,7 @@ const Icon = ({ children }) => (
   </svg>
 )
 
-// 상단: [R 로고] ··· [🔒 나만보기] [🌐 공개메모] ··· [사람 아이콘]
+// 상단: [R 로고 메모중독] ··· [🔒 나만보기] [🌐 공개메모] ··· [사람 아이콘]
 export default function Header() {
   const { user } = useAuth()
   const { pathname } = useLocation()
@@ -20,7 +20,10 @@ export default function Header() {
 
   return (
     <header className="header">
-      <Link to="/" className="logo" aria-label="Recordish 첫 화면" title="Recordish">R</Link>
+      <Link to="/" className="brand" aria-label="Recordish 첫 화면" title="Recordish">
+        <span className="logo">R</span>
+        <span className="tagline">메모중독</span>
+      </Link>
       <nav className="menu">
         <NavLink to={needLogin ? '/login' : '/mine'}
           // 로그인 전에는 로그인 화면으로 가는 링크라, 로그인 화면에서 켜지지 않게 합니다 (켜지는 건 사람 아이콘만)

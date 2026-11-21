@@ -37,13 +37,18 @@
 body { margin: 0; background: var(--bg); padding-bottom: var(--inset-bottom); }
 a { color: var(--primary-text); text-decoration: none; }
 
+/* 3칸 격자: 왼쪽 로고·문구가 길어도 가운데 메뉴는 화면 정가운데 */
 .header {
-  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
   padding: calc(8px + var(--inset-top)) 12px 8px; background: var(--primary); color: #000;
 }
 /* 왼쪽 R 로고 (앱 아이콘처럼 검은 굵은 R) */
 .logo { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
   font-size: 28px; font-weight: 800; line-height: 1; color: #000; }
+/* 로고 옆 문구 '메모중독' */
+.brand { display: inline-flex; align-items: center; gap: 2px; justify-self: start; color: #000; white-space: nowrap; }
+.tagline { font-size: 14px; font-weight: 700; letter-spacing: -0.02em; color: rgba(0, 0, 0, 0.7); }
+.header > :last-child { justify-self: end; }
 /* 가운데 메뉴 아이콘 2개 */
 .header .menu { display: flex; gap: 24px; align-items: center; }
 .menu-icon {
